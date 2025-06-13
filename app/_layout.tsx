@@ -1,29 +1,47 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { darkTheme, lightTheme } from '@/constants/Themes';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider as CustomThemeProvider, useThemeMode } from '@/contexts/ThemeContext';
+import { DarkTheme as NavDarkTheme, DefaultTheme as NavLightTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return (
+    <CustomThemeProvider>
+      <InnerLayout />
+    </CustomThemeProvider>
+  );
+}
+
+function InnerLayout() {
+  const { theme } = useThemeMode();
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
+  const navTheme = theme === 'dark' ? NavDarkTheme : NavLightTheme;
+  const paperTheme = theme === 'dark' ? darkTheme : lightTheme;
+  const statusBarStyle = theme === 'dark' ? 'light' : 'dark';
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <PaperProvider theme={paperTheme}>
+        <ThemeProvider value={navTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style={statusBarStyle} />
+        </ThemeProvider>
+      </PaperProvider>
+    </AuthProvider>
   );
 }
