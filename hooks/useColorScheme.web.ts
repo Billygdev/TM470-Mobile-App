@@ -1,21 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
-
-/**
- * To support static rendering, this value needs to be re-calculated on the client side for web
- */
-export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
+export default function useColorScheme(): 'light' | 'dark' {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    return darkModeQuery.matches ? 'dark' : 'light';
   }
 
+  // Fallback to light if window is not defined (e.g., during SSR)
   return 'light';
 }
