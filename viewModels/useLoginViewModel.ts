@@ -13,7 +13,6 @@ export const useLoginViewModel = () => {
 
     try {
       await loginUser(email, password);
-      // Navigation can be triggered here if needed
     } catch (err: any) {
       setError(err.message);
     } finally {
