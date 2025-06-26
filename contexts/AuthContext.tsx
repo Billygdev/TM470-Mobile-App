@@ -23,7 +23,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
 
       // Handle redirects
-      if (!firebaseUser && pathname !== '/login') {
+      const publicPaths = new Set(['/login', '/signup']);
+
+      if (!firebaseUser && !publicPaths.has(pathname)) {
         router.replace('/login');
       } else if (firebaseUser && pathname === '/login') {
         router.replace('/');

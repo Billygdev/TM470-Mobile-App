@@ -1,26 +1,39 @@
-import { useLoginViewModel } from '@/viewModels/useLoginViewModel';
+import { useSignUpViewModel } from '@/viewModels/useSignUpViewModel';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, HelperText, Text, TextInput, useTheme } from 'react-native-paper';
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const { colors } = useTheme();
-  const {
+    const {
+    username,
+    setUsername,
     email,
     setEmail,
     password,
     setPassword,
+    confirmPassword,
+    setConfirmPassword,
     loading,
     error,
-    handleLogin,
-    navigateToSignUp,
-  } = useLoginViewModel();
+    handleSignUp,
+    navigateToLogin,
+  } = useSignUpViewModel();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
-        Login
+        Sign Up
       </Text>
+
+      <TextInput
+        label="Username"
+        mode="outlined"
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        style={styles.input}
+      />
 
       <TextInput
         label="Email"
@@ -41,24 +54,37 @@ export default function LoginScreen() {
         style={styles.input}
       />
 
-      {error && <HelperText type="error" visible>{error}</HelperText>}
+      <TextInput
+        label="Confirm Password"
+        mode="outlined"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        secureTextEntry
+        style={styles.input}
+      />
+
+      {!!error && (
+        <HelperText type="error" visible>
+          {String(error)}
+        </HelperText>
+      )}
 
       <Button
         mode="contained"
-        onPress={handleLogin}
+        onPress={handleSignUp}
         loading={loading}
         disabled={loading}
         style={styles.button}
       >
-        Log In
+        Create Account
       </Button>
 
       <Button
         mode="text"
-        onPress={navigateToSignUp}
+        onPress={navigateToLogin}
         style={styles.button}
       >
-        Sign Up
+        Cancel
       </Button>
     </View>
   );
