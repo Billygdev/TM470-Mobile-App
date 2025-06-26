@@ -1,4 +1,5 @@
 import { loginUser } from '@/models/authModel';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 export const useLoginViewModel = () => {
@@ -6,6 +7,8 @@ export const useLoginViewModel = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleLogin = async () => {
     setLoading(true);
@@ -20,6 +23,10 @@ export const useLoginViewModel = () => {
     }
   };
 
+  const navigateToSignUp = async () => {
+    router.replace('/signup');
+  };
+
   return {
     email,
     setEmail,
@@ -28,5 +35,6 @@ export const useLoginViewModel = () => {
     loading,
     error,
     handleLogin,
+    navigateToSignUp,
   };
 };

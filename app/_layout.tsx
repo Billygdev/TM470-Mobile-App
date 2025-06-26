@@ -1,5 +1,6 @@
 import { darkTheme, lightTheme } from '@/constants/Themes';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { SnackbarProvider } from '@/contexts/SnackbarContext';
 import { ThemeProvider as CustomThemeProvider, useThemeMode } from '@/contexts/ThemeContext';
 import { DarkTheme as NavDarkTheme, DefaultTheme as NavLightTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -35,11 +36,13 @@ function InnerLayout() {
     <AuthProvider>
       <PaperProvider theme={paperTheme}>
         <ThemeProvider value={navTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style={statusBarStyle} />
+          <SnackbarProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style={statusBarStyle} />
+          </SnackbarProvider>
         </ThemeProvider>
       </PaperProvider>
     </AuthProvider>
