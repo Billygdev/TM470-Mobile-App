@@ -37,6 +37,19 @@ test('loginUser returns user on success', async () => {
   expect(result.user.uid).toBe('123');
 });
 
+test('loginUser throws an error on failure', async () => {
+  const errorMessage = 'Invalid login credentials';
+  (signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+  await expect(loginUser('test@email.com', 'wrongpassword123')).rejects.toThrow(errorMessage);
+
+  expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+    expect.anything(),
+    'test@email.com',
+    'wrongpassword123'
+  );
+});
+
 test('registerUser creates user with correct credentials and sets displayName', async () => {
   const email = 'newuser@example.com';
   const password = 'securePassword123';
@@ -57,4 +70,17 @@ test('registerUser creates user with correct credentials and sets displayName', 
   expect(result.user.uid).toBe('123');
   expect(result.user.email).toBe(email);
   expect(result.user.displayName).toBe(username);
+});
+
+test('registerUser throws an error on failure', async () => {
+  const errorMessage = 'Email already in use';
+  (createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+  await expect(registerUser('duplicate@email.com', 'password123', 'DuplicateUser')).rejects.toThrow(errorMessage);
+
+  expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
+    expect.anything(),
+    'duplicate@email.com',
+    'password123'
+  );
 });
