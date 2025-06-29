@@ -1,26 +1,18 @@
-import { getTravelEvents } from '@/models/firestoreEventModel';
+import { getTravelEvents, TravelEvent } from '@/models/firestoreEventModel';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-
-export type TravelEvent = {
-  id: string;
-  title: string;
-  destination: string;
-  pickupLocation: string;
-  pickupDate: string;
-  pickupTime: string;
-  price: number;
-};
 
 export function useTravelEventsViewModel() {
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
-    const getEvents = async () => {
+    const fetchEvents = async () => {
       try {
         const data = await getTravelEvents();
-        setEvents(data as TravelEvent[]);
+        setEvents(data);
       } catch (error) {
         console.error('Error fetching travel events:', error);
       } finally {
@@ -28,8 +20,15 @@ export function useTravelEventsViewModel() {
       }
     };
 
-    getEvents();
+    fetchEvents();
   }, []);
+
+  const handleEventPress = (event: TravelEvent) => {
+    router.push({
+      pathname: '/travel-event-details',
+      params: { id: event.id },
+    });
+  };
 
   const filteredEvents = events.filter(event => {
     const query = searchQuery.toLowerCase();
@@ -40,5 +39,11 @@ export function useTravelEventsViewModel() {
     );
   });
 
-  return { events: filteredEvents, loading, searchQuery, setSearchQuery };
+  return {
+    events: filteredEvents,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    handleEventPress,
+  };
 }
