@@ -1,5 +1,5 @@
 import { firestore } from '@/services/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from 'firebase/firestore';
 
 export interface TravelEventData {
   title: string;
@@ -23,4 +23,16 @@ export const createTravelEvent = async (
     ...data,
     createdAt: serverTimestamp(),
   });
+};
+
+export const getTravelEvents = async () => {
+  const colRef = collection(firestore, 'travelEvents');
+  const q = query(colRef, orderBy('pickupDate'));
+  
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }))
 };

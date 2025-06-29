@@ -25,6 +25,7 @@ jest.mock('firebase/auth', () => ({
   updateProfile: jest.fn(() => Promise.resolve()),
 }));
 
+// LOGIN USER - Success
 test('loginUser returns user on success', async () => {
   const result = await loginUser('test@email.com', 'password123');
 
@@ -37,6 +38,7 @@ test('loginUser returns user on success', async () => {
   expect(result.user.uid).toBe('123');
 });
 
+// LOGIN USER - Fail
 test('loginUser throws an error on failure', async () => {
   const errorMessage = 'Invalid login credentials';
   (signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
@@ -50,6 +52,7 @@ test('loginUser throws an error on failure', async () => {
   );
 });
 
+// REGISTER USER - Success
 test('registerUser creates user with correct credentials and sets displayName', async () => {
   const email = 'newuser@example.com';
   const password = 'securePassword123';
@@ -72,6 +75,7 @@ test('registerUser creates user with correct credentials and sets displayName', 
   expect(result.user.displayName).toBe(username);
 });
 
+// REGISTER USER - Fail
 test('registerUser throws an error on failure', async () => {
   const errorMessage = 'Email already in use';
   (createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));

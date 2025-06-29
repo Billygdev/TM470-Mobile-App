@@ -1,54 +1,94 @@
-import FirestoreTestButton from '@/components/FirestoreTestButton';
 import LogoutButton from '@/components/LogoutButton';
 import ThemeToggleButton from '@/components/ThemeToggleButton';
 import { useHomeViewModel } from '@/viewModels/useHomeViewModel';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Button, Text, useTheme } from 'react-native-paper';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Button, Divider, Text, useTheme } from 'react-native-paper';
 
 export default function HomeScreen() {
   const { colors } = useTheme();
-  const { displayName, navigateToCreateEvent } = useHomeViewModel();
+  const {
+    displayName,
+    navigateToCreateEvent,
+    loadingNews,
+    news
+  } = useHomeViewModel();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}> 
-      <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}> 
-        Welcome to the TM470 App - {displayName} 
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+      <Text variant="headlineMedium" style={[styles.mainTitle, { color: colors.onBackground }]}>
+        Sports Travel Organizer
       </Text>
-      <Text variant="bodyMedium" style={[styles.paragraph, { color: colors.onBackground }]}> 
-        This is your home screen. From here, you can navigate through the app,
-        toggle between light and dark mode, and explore more features. 
+
+      <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
+        Welcome {displayName}
       </Text>
+
+      <Text variant="bodyMedium" style={[styles.introText, { color: colors.onBackground }]}>
+        This app helps you organize and manage football travel events, stay updated on news, and handle your bookings and schedules easily.
+      </Text>
+
+      <Divider style={{ marginVertical: 16 }} />
+
+      {/* THESE ARE TEST BUTTONS AND WILL BE REPLACED AT A LATER DATE */}
+      <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
+        Test Buttons
+      </Text>
+
       <ThemeToggleButton />
-      <FirestoreTestButton />
       <LogoutButton />
 
       <Button
-        mode="text"
+        mode="contained"
         onPress={navigateToCreateEvent}
-        style={styles.button}
+        style={styles.createEventButton}
       >
         Create Event
       </Button>
-    </View>
+
+      <Divider style={{ marginVertical: 16 }} />
+
+      <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
+        News
+      </Text>
+
+      {!loadingNews && news.length > 0 && (
+        <View>
+          {news.map(article => (
+            <View key={article.id} style={{ marginBottom: 16 }}>
+              <Text variant="titleMedium">{article.title}</Text>
+              <Text variant="bodySmall">{new Date(article.date.seconds * 1000).toLocaleDateString()}</Text>
+              <Text variant="bodyMedium">{article.description}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
-  title: {
-    marginBottom: 16,
+  mainTitle: {
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  subTitle: {
     fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  paragraph: {
+  introText: {
+    textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
   },
-  button: {
-    marginTop: 8,
+  createEventButton: {
+    marginTop: 16,
   },
 });
