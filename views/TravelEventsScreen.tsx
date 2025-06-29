@@ -6,7 +6,13 @@ import { ActivityIndicator, Searchbar, Text, useTheme } from 'react-native-paper
 
 export default function TravelEventsScreen() {
   const { colors } = useTheme();
-  const { events, loading, searchQuery, setSearchQuery } = useTravelEventsViewModel();
+  const {
+    events,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    handleEventPress,
+  } = useTravelEventsViewModel();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -30,7 +36,7 @@ export default function TravelEventsScreen() {
       ) : (
         <FlatList
           data={events}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id!}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <TravelEventCard
@@ -40,6 +46,7 @@ export default function TravelEventsScreen() {
               pickupDate={item.pickupDate}
               pickupTime={item.pickupTime}
               price={item.price}
+              onPress={() => handleEventPress(item)}
             />
           )}
         />
