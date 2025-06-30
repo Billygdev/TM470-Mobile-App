@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   Button,
   Divider,
+  HelperText,
   Text,
   TextInput,
   useTheme,
@@ -16,6 +17,8 @@ export default function TravelEventDetailsScreen() {
     seatsRequired,
     setSeatsRequired,
     handleJoinEvent,
+    error,
+    loading,
   } = useTravelEventDetailsViewModel();
 
   if (!event) {
@@ -78,6 +81,13 @@ export default function TravelEventDetailsScreen() {
         </Text>
       </View>
 
+      <View style={styles.detailRow}>
+        <Text style={[styles.label, { color: colors.onBackground }]}>Seats Available:</Text>
+        <Text style={[styles.value, { color: colors.onBackground }]}>
+          {event.seatsAvailable - (event.seatsBooked ?? 0)} / {event.seatsAvailable}
+        </Text>
+      </View>
+
       <Divider style={{ marginVertical: 16 }} />
 
       <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
@@ -97,9 +107,17 @@ export default function TravelEventDetailsScreen() {
         mode="contained"
         onPress={handleJoinEvent}
         style={styles.button}
+        loading={loading}
+        disabled={loading}
       >
         Join Event
       </Button>
+
+      {!!error && (
+        <HelperText type="error" visible>
+          {String(error)}
+        </HelperText>
+      )}
     </View>
   );
 }

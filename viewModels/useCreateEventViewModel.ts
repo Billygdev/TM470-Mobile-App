@@ -11,6 +11,7 @@ export function useCreateEventViewModel() {
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('');
   const [price, setPrice] = useState('');
+  const [seatsAvailable, setSeatsAvailable] = useState('');
   const [requirePayment, setRequirePayment] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +21,27 @@ export function useCreateEventViewModel() {
   const { showSnackbar } = useSnackbar();
 
   const validateFields = () => {
-    if (!title || !destination || !pickupLocation || !pickupDate || !pickupTime || !price) {
+    if (
+      !title ||
+      !destination ||
+      !pickupLocation ||
+      !pickupDate ||
+      !pickupTime ||
+      !price ||
+      !seatsAvailable
+    ) {
       return 'All fields are required.';
     }
 
     if (isNaN(Number(price))) {
       return 'Price must be a number.';
+    }
+
+    if (
+      isNaN(Number(seatsAvailable)) ||
+      !Number.isInteger(Number(seatsAvailable))
+    ) {
+      return 'Seats available must be a whole number.';
     }
 
     return '';
@@ -50,7 +66,8 @@ export function useCreateEventViewModel() {
         pickupLocation,
         pickupDate,
         pickupTime,
-        price,
+        price: Number(price),
+        seatsAvailable: Number(seatsAvailable),
         requirePayment,
         organizerName: user!.displayName!,
         organizerUid: user!.uid,
@@ -90,6 +107,8 @@ export function useCreateEventViewModel() {
     setPickupTime,
     price,
     setPrice,
+    seatsAvailable,
+    setSeatsAvailable,
     requirePayment,
     setRequirePayment,
     loading,
