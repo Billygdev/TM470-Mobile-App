@@ -23,6 +23,7 @@ export default function TravelEventDetailsScreen() {
     handlePaymentCancel,
     error,
     loading,
+    handleViewEventBookings,
   } = useTravelEventDetailsViewModel();
 
   if (!event) {
@@ -122,6 +123,18 @@ export default function TravelEventDetailsScreen() {
           {String(error)}
         </HelperText>
       )}
+
+      <Divider style={{ marginVertical: 16 }} />
+
+      <Button
+        mode="contained"
+        onPress={() => handleViewEventBookings(event)}
+        style={styles.button}
+        loading={loading}
+        disabled={loading}
+      >
+        View Bookings
+      </Button>
 
       <PaymentModal
         visible={showPaymentModal}

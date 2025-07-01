@@ -122,3 +122,15 @@ export const createTravelEventBooking = async (
     createdAt: serverTimestamp(),
   });
 };
+
+// GET TRAVEL EVENT BOOKINGS
+export const getTravelEventBookings = async (eventId: string) => {
+  const eventRef = doc(firestore, 'travelEvents', eventId);
+  const bookingsRef = collection(eventRef, 'bookings');
+  const bookingsSnap = await getDocs(bookingsRef);
+
+  return bookingsSnap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+};
