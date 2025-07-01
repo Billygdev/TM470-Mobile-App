@@ -3,7 +3,9 @@ import { createTravelEvent, createTravelEventBooking, getTravelEvents } from '..
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => 'mocked-firestore'),
   collection: jest.fn(() => 'mocked-collection-ref'),
+  doc: jest.fn(() => 'mocked-doc-ref'),
   query: jest.fn(() => 'mocked-query-ref'),
   orderBy: jest.fn(() => 'mocked-order-by'),
   getDocs: jest.fn(),
@@ -12,6 +14,10 @@ jest.mock('firebase/firestore', () => ({
   updateDoc: jest.fn(),
   serverTimestamp: jest.fn(() => 'mocked-timestamp'),
 }));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 // CREATE TRAVEL EVENT - Success
 test('createTravelEvent adds a new document with the correct data', async () => {

@@ -1,3 +1,4 @@
+import { PaymentModal } from '@/components/PaymentModal';
 import { useTravelEventDetailsViewModel } from '@/viewModels/useTravelEventDetailsViewModel';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -17,6 +18,9 @@ export default function TravelEventDetailsScreen() {
     seatsRequired,
     setSeatsRequired,
     handleJoinEvent,
+    handlePaymentSubmit,
+    showPaymentModal,
+    handlePaymentCancel,
     error,
     loading,
   } = useTravelEventDetailsViewModel();
@@ -77,7 +81,7 @@ export default function TravelEventDetailsScreen() {
       <View style={styles.detailRow}>
         <Text style={[styles.label, { color: colors.onBackground }]}>Payment Required:</Text>
         <Text style={[styles.value, { color: colors.onBackground }]}>
-            {event.requirePayment ? 'Yes' : 'No'}
+          {event.requirePayment ? 'Yes' : 'No'}
         </Text>
       </View>
 
@@ -118,6 +122,13 @@ export default function TravelEventDetailsScreen() {
           {String(error)}
         </HelperText>
       )}
+
+      <PaymentModal
+        visible={showPaymentModal}
+        onClose={handlePaymentCancel}
+        onSubmit={handlePaymentSubmit}
+        amount={event.price * Number(seatsRequired || 1)}
+      />
     </View>
   );
 }

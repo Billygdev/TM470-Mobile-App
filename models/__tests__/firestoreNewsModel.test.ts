@@ -3,6 +3,7 @@ import { getRecentNews } from '../firestoreNewsModel';
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => 'mocked-firestore'),
   collection: jest.fn(() => 'mocked-collection-ref'),
   query: jest.fn(() => 'mocked-query-ref'),
   orderBy: jest.fn(() => 'mocked-order-by'),
