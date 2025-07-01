@@ -5,7 +5,7 @@ import {
   getTravelEventById,
   TravelEvent,
 } from '@/models/firestoreEventModel';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 export function useTravelEventDetailsViewModel() {
@@ -19,6 +19,7 @@ export function useTravelEventDetailsViewModel() {
 
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
+  const router = useRouter();
 
   useEffect(() => {
     const getEvent = async () => {
@@ -148,6 +149,13 @@ export function useTravelEventDetailsViewModel() {
     }
   };
 
+  const handleViewEventBookings = (event: TravelEvent) => {
+    router.push({
+      pathname: '/travel-event-bookings',
+      params: { id: event.id },
+    });
+  };
+
   return {
     event,
     seatsRequired,
@@ -159,5 +167,6 @@ export function useTravelEventDetailsViewModel() {
     setShowPaymentModal,
     error,
     loading,
+    handleViewEventBookings,
   };
 }

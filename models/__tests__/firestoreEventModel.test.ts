@@ -1,5 +1,18 @@
-import { addDoc, collection, getDoc, getDocs, query, updateDoc } from 'firebase/firestore';
-import { createTravelEvent, createTravelEventBooking, getTravelEvents } from '../firestoreEventModel';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc
+} from 'firebase/firestore';
+import {
+  createTravelEvent,
+  createTravelEventBooking,
+  getTravelEventBookings,
+  getTravelEvents
+} from '../firestoreEventModel';
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
@@ -147,4 +160,36 @@ test('createTravelEventBooking throws an error when booking exceeds available se
 
   expect(updateDoc).not.toHaveBeenCalled();
   expect(addDoc).not.toHaveBeenCalled();
+});
+
+// GET TRAVEL EVENT BOOKINGS - Success
+test('getTravelEventBookings returns bookings from subcollection', async () => {
+  const mockDocs = [
+    { id: '1', data: () => ({ bookerName: 'Alice', seatsBooked: 2, payed: true }) },
+    { id: '2', data: () => ({ bookerName: 'Bob', seatsBooked: 1, payed: false }) },
+  ];
+
+  (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
+
+  const bookings = await getTravelEventBookings('event123');
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123');
+  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
+  expect(getDocs).toHaveBeenCalledWith('mocked-collection-ref');
+
+  expect(bookings).toEqual([
+    { id: '1', bookerName: 'Alice', seatsBooked: 2, payed: true },
+    { id: '2', bookerName: 'Bob', seatsBooked: 1, payed: false },
+  ]);
+});
+
+// GET TRAVEL EVENT BOOKINGS - Fail
+test('getTravelEventBookings throws an error if getDocs fails', async () => {
+  const errorMessage = 'Failed to get bookings';
+  (getDocs as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+  await expect(getTravelEventBookings('event123')).rejects.toThrow(errorMessage);
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123');
+  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
 });
