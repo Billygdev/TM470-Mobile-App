@@ -1,15 +1,23 @@
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
-import { createTravelEvent, getTravelEvents } from '../firestoreEventModel';
+import { addDoc, collection, getDoc, getDocs, query, updateDoc } from 'firebase/firestore';
+import { createTravelEvent, createTravelEventBooking, getTravelEvents } from '../firestoreEventModel';
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => 'mocked-firestore'),
   collection: jest.fn(() => 'mocked-collection-ref'),
+  doc: jest.fn(() => 'mocked-doc-ref'),
   query: jest.fn(() => 'mocked-query-ref'),
   orderBy: jest.fn(() => 'mocked-order-by'),
   getDocs: jest.fn(),
+  getDoc: jest.fn(),
   addDoc: jest.fn(() => Promise.resolve({ id: 'abc123' })),
+  updateDoc: jest.fn(),
   serverTimestamp: jest.fn(() => 'mocked-timestamp'),
 }));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 // CREATE TRAVEL EVENT - Success
 test('createTravelEvent adds a new document with the correct data', async () => {
@@ -19,7 +27,8 @@ test('createTravelEvent adds a new document with the correct data', async () => 
     pickupLocation: 'Mansfield',
     pickupDate: '01/01/2025',
     pickupTime: '08:00',
-    price: '20',
+    price: 20,
+    seatsAvailable: 56,
     requirePayment: true,
     organizerName: 'Billy',
     organizerUid: 'user123',
@@ -46,7 +55,8 @@ test('createTravelEvent throws an error if addDoc fails', async () => {
     pickupLocation: 'Anywhere',
     pickupDate: '02/05/2025',
     pickupTime: '10:00',
-    price: '1',
+    price: 1,
+    seatsAvailable: 56,
     requirePayment: false,
     organizerName: 'Billy',
     organizerUid: 'user123',
@@ -82,4 +92,59 @@ test('getTravelEvents throws an error if getDocs fails', async () => {
   (getDocs as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
 
   await expect(getTravelEvents()).rejects.toThrow(errorMessage);
+});
+
+// TRAVEL EVENT BOOKING - Success
+test('createTravelEventBooking successfully updates seatsBooked and adds a booking', async () => {
+  const booking = {
+    seatsBooked: 2,
+    payed: true,
+    bookerName: 'Alice',
+    bookerUid: 'user789',
+  };
+
+  (getDoc as jest.Mock).mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      seatsAvailable: 10,
+      seatsBooked: 3, // seats already booked
+    }),
+  });
+
+  await createTravelEventBooking('event123', booking);
+
+  expect(updateDoc).toHaveBeenCalledWith('mocked-doc-ref', {
+    seatsBooked: 5,
+  });
+
+  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
+  expect(addDoc).toHaveBeenCalledWith('mocked-collection-ref', {
+    ...booking,
+    createdAt: 'mocked-timestamp',
+  });
+});
+
+// TRAVEL EVENT BOOKING - Fail (overbooking)
+test('createTravelEventBooking throws an error when booking exceeds available seats', async () => {
+  const booking = {
+    seatsBooked: 4,
+    payed: false,
+    bookerName: 'Bob',
+    bookerUid: 'user111',
+  };
+
+  (getDoc as jest.Mock).mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({
+      seatsAvailable: 5,
+      seatsBooked: 3, // seats already booked
+    }),
+  });
+
+  await expect(createTravelEventBooking('event123', booking)).rejects.toThrow(
+    'Only 2 seat(s) remaining.'
+  );
+
+  expect(updateDoc).not.toHaveBeenCalled();
+  expect(addDoc).not.toHaveBeenCalled();
 });

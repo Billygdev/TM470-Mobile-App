@@ -25,6 +25,8 @@ export default function CreateEventScreen() {
     setPickupTime,
     price,
     setPrice,
+    seatsAvailable,
+    setSeatsAvailable,
     requirePayment,
     setRequirePayment,
     loading,
@@ -89,6 +91,15 @@ export default function CreateEventScreen() {
         keyboardType="numeric"
         style={styles.input}
         left={<TextInput.Icon icon={() => <Text style={{ fontSize: 16 }}>£</Text>} />}
+      />
+
+      <TextInput
+        label="Seats Available"
+        mode="outlined"
+        value={seatsAvailable}
+        onChangeText={setSeatsAvailable}
+        keyboardType="numeric"
+        style={styles.input}
       />
 
       <View style={styles.checkboxContainer}>

@@ -8,6 +8,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from 'firebase/firestore';
 
 export interface TravelEvent {
@@ -18,9 +19,20 @@ export interface TravelEvent {
   pickupDate: string;
   pickupTime: string;
   price: number;
+  seatsAvailable: number;
+  seatsBooked?: number;
   requirePayment: boolean;
   organizerName: string;
   organizerUid: string;
+  createdAt?: any;
+}
+
+export interface TravelEventBooking {
+  id?: string;
+  seatsBooked: number;
+  payed: boolean;
+  bookerName: string;
+  bookerUid: string;
   createdAt?: any;
 }
 
@@ -71,4 +83,42 @@ export const getTravelEventById = async (id: string): Promise<TravelEvent> => {
     ...data,
     price: typeof data.price === 'string' ? parseFloat(data.price) : data.price,
   } as TravelEvent;
+};
+
+// BOOK ONTO TRAVEL EVENT
+export const createTravelEventBooking = async (
+  eventId: string,
+  booking: Omit<TravelEventBooking, 'id' | 'createdAt'>
+): Promise<void> => {
+  const eventRef = doc(firestore, 'travelEvents', eventId);
+  const eventSnap = await getDoc(eventRef);
+
+  if (!eventSnap.exists()) {
+    throw new Error('Travel event not found');
+  }
+
+  const currentData = eventSnap.data();
+  const currentSeatsBooked = currentData.seatsBooked || 0;
+  const totalSeatsAvailable = currentData.seatsAvailable;
+
+  const newTotal = currentSeatsBooked + booking.seatsBooked;
+
+  // Validation to prevent overbooking
+  if (newTotal > totalSeatsAvailable) {
+    throw new Error(
+      `Only ${totalSeatsAvailable - currentSeatsBooked} seat(s) remaining.`
+    );
+  }
+
+  // 1. Update the parent travel event's seatsBooked field
+  await updateDoc(eventRef, {
+    seatsBooked: newTotal,
+  });
+
+  // 2. Add new booking document to 'bookings' subcollection
+  const bookingsColRef = collection(eventRef, 'bookings');
+  await addDoc(bookingsColRef, {
+    ...booking,
+    createdAt: serverTimestamp(),
+  });
 };
