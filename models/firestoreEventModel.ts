@@ -9,6 +9,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
   where,
@@ -295,6 +296,48 @@ export const updateTravelEventBooking = async (
   await updateDoc(bookingRef, { payed });
 };
 
+// CANCEL A TRAVEL EVENT BOOKING (Archive)
+export const cancelTravelEventBooking = async (
+  eventId: string,
+  bookingId: string
+): Promise<void> => {
+  const bookingRef = doc(firestore, 'travelEvents', eventId, 'bookings', bookingId);
+  const cancelledRef = collection(firestore, 'travelEvents', eventId, 'cancelledBookings');
+
+  await runTransaction(firestore, async (transaction) => {
+    const bookingSnap = await transaction.get(bookingRef);
+
+    if (!bookingSnap.exists()) {
+      throw new Error('Booking not found');
+    }
+
+    const bookingData = bookingSnap.data();
+
+    // Delete from 'bookings'
+    transaction.delete(bookingRef);
+
+    // Add to 'cancelledBookings'
+    transaction.set(doc(cancelledRef), {
+      ...bookingData,
+      cancelledAt: serverTimestamp(),
+    });
+  });
+};
+
+// GET TRAVEL EVENT CANCELLED BOOKINGS
+export const getTravelEventCancellations = async (
+  eventId: string
+): Promise<TravelEventBooking[]> => {
+  const eventRef = doc(firestore, 'travelEvents', eventId);
+  const cancelledRef = collection(eventRef, 'cancelledBookings');
+  const snapshot = await getDocs(cancelledRef);
+
+  return snapshot.docs.map(docSnap => ({
+    id: docSnap.id,
+    ...(docSnap.data() as Omit<TravelEventBooking, 'id'>),
+  }));
+};
+
 // GET TRAVEL EVENT SEATS BOOKED AMOUNT
 export const getSeatsBookedForEvent = async (eventId: string): Promise<number> => {
   const bookingsRef = collection(firestore, 'travelEvents', eventId, 'bookings');
@@ -311,14 +354,15 @@ export const getSeatsBookedForEvent = async (eventId: string): Promise<number> =
 };
 
 // GET TRAVEL EVENT BOOKINGS
-export const getTravelEventBookings = async (eventId: string) => {
-  const eventRef = doc(firestore, 'travelEvents', eventId);
-  const bookingsRef = collection(eventRef, 'bookings');
-  const bookingsSnap = await getDocs(bookingsRef);
+export const getTravelEventBookings = async (
+  eventId: string
+): Promise<TravelEventBooking[]> => {
+  const bookingsRef = collection(firestore, 'travelEvents', eventId, 'bookings');
+  const snapshot = await getDocs(bookingsRef);
 
-  return bookingsSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
+  return snapshot.docs.map(docSnap => ({
+    id: docSnap.id,
+    ...(docSnap.data() as Omit<TravelEventBooking, 'id'>),
   }));
 };
 

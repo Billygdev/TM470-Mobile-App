@@ -16,6 +16,8 @@ type TravelEventCardProps = {
   payed?: boolean;
   createdAt?: any; // Firestore Timestamp or Date
   onPayPress?: () => void;
+  isCancelling?: boolean;
+  onCancelPress?: () => void;
 };
 
 export function TravelEventCard({
@@ -30,6 +32,8 @@ export function TravelEventCard({
   payed,
   createdAt,
   onPayPress,
+  isCancelling,
+  onCancelPress,
 }: TravelEventCardProps) {
   const { dark } = useTheme();
 
@@ -61,38 +65,49 @@ export function TravelEventCard({
           {hasBookingData && (
             <>
               <Divider style={styles.divider} />
-
-              <View style={styles.bookingRow}>
-                <View style={styles.bookingDetails}>
-                  {seatsBooked !== undefined && (
-                    <Text>
-                      <Text style={styles.label}>Seats Booked:</Text> {seatsBooked}
-                    </Text>
-                  )}
-                  {payed !== undefined && (
-                    <Text>
-                      <Text style={styles.label}>Payment Status:</Text> {payed ? 'Paid' : 'Unpaid'}
-                    </Text>
-                  )}
-                  {createdAt && (
-                    <Text>
-                      <Text style={styles.label}>Booked At:</Text> {formattedCreatedAt}
-                    </Text>
-                  )}
-                </View>
-
-                {!payed && (
-                  <View style={styles.payButtonWrapper}>
-                    <Button
-                      mode="contained"
-                      onPress={onPayPress}
-                      compact
-                      style={styles.payButton}
-                    >
-                      Pay Now
-                    </Button>
-                  </View>
+              
+              <View style={styles.bookingDetails}>
+                {seatsBooked !== undefined && (
+                  <Text>
+                    <Text style={styles.label}>Seats Booked:</Text> {seatsBooked}
+                  </Text>
                 )}
+                {payed !== undefined && (
+                  <Text>
+                    <Text style={styles.label}>Payment Status:</Text> {payed ? 'Paid' : 'Unpaid'}
+                  </Text>
+                )}
+                {createdAt && (
+                  <Text>
+                    <Text style={styles.label}>Booked At:</Text> {formattedCreatedAt}
+                  </Text>
+                )}
+              </View>
+
+              <View style={styles.actionRow}>
+                {!payed && (
+                  <Button
+                    mode="contained"
+                    compact
+                    onPress={onPayPress}
+                    style={styles.payButton}
+                  >
+                    Pay Now
+                  </Button>
+                )}
+
+                <View style={{ flex: 1 }} />
+                
+                <Button
+                  mode="outlined"
+                  compact
+                  onPress={onCancelPress}
+                  style={styles.cancelButton}
+                  loading={isCancelling}
+                  disabled={isCancelling}
+                >
+                  Cancel Booking
+                </Button>
               </View>
             </>
           )}
@@ -134,22 +149,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontWeight: '600',
   },
-  bookingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
   bookingDetails: {
-    flex: 1,
-    justifyContent: 'space-between',
+    marginBottom: 6,
   },
-  payButtonWrapper: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   payButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    flex: 1,
+  },
+  cancelButton: {
+    alignSelf: 'flex-end',
   },
 });

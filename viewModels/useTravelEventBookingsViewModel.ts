@@ -1,27 +1,41 @@
+import {
+  getTravelEventBookings,
+  getTravelEventCancellations,
+  TravelEventBooking
+} from '@/models/firestoreEventModel';
 import { useEffect, useState } from 'react';
-import { getTravelEventBookings } from '../models/firestoreEventModel';
 
 export const useTravelEventBookingsViewModel = (eventId: string) => {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<TravelEventBooking[]>([]);
+  const [cancellations, setCancellations] = useState<TravelEventBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchData = async () => {
       try {
-        const results = await getTravelEventBookings(eventId);
-        setBookings(results);
+        const [bookingData, cancellationData] = await Promise.all([
+          getTravelEventBookings(eventId),
+          getTravelEventCancellations(eventId)
+        ]);
+        
+        setBookings(bookingData);
+        setCancellations(cancellationData);
       } catch (err: any) {
-        setError(err.message || 'Failed to load bookings.');
+        console.error(err);
+        setError('Failed to load bookings');
       } finally {
         setLoading(false);
       }
     };
 
-    if (eventId) {
-      fetchBookings();
-    }
+    fetchData();
   }, [eventId]);
 
-  return { bookings, loading, error };
-};
+  return {
+    bookings,
+    cancellations,
+    loading,
+    error
+  };
+}

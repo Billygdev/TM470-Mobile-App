@@ -5,12 +5,15 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  runTransaction,
   updateDoc
 } from 'firebase/firestore';
 import {
+  cancelTravelEventBooking,
   createTravelEvent,
   createTravelEventBooking,
   getTravelEventBookings,
+  getTravelEventCancellations,
   getTravelEvents,
   getUserTravelEventBookings,
   subscribeToTravelEventById,
@@ -32,9 +35,11 @@ jest.mock('firebase/firestore', () => ({
   getDoc: jest.fn(),
   addDoc: jest.fn(() => Promise.resolve({ id: 'abc123' })),
   updateDoc: jest.fn(),
+  deleteDoc: jest.fn(),
   serverTimestamp: jest.fn(() => 'mocked-timestamp'),
   onSnapshot: jest.fn(),
   collectionGroup: jest.fn(),
+  runTransaction: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -270,36 +275,146 @@ test('updateTravelEventBooking throws an error if booking does not exist', async
   expect(updateDoc).not.toHaveBeenCalled();
 });
 
-// GET TRAVEL EVENT BOOKINGS - Success
-test('getTravelEventBookings returns bookings from subcollection', async () => {
+// CANCEL TRAVEL EVENT BOOKING - Success
+test('cancelTravelEventBooking deletes the booking and adds a cancellation record', async () => {
+  const mockEventId = 'event123';
+  const mockBookingId = 'booking456';
+
+  const mockBookingData = {
+    bookerName: 'Alice',
+    bookerUid: 'user789',
+    payed: true,
+    seatsBooked: 2,
+    createdAt: 'mocked-timestamp',
+  };
+
+  const mockTransaction = {
+    get: jest.fn().mockResolvedValueOnce({
+      exists: () => true,
+      data: () => mockBookingData,
+    }),
+    delete: jest.fn(),
+    set: jest.fn(),
+  };
+
+  (runTransaction as jest.Mock).mockImplementationOnce((db, callback) =>
+    callback(mockTransaction)
+  );
+
+  await cancelTravelEventBooking(mockEventId, mockBookingId);
+
+  expect(mockTransaction.get).toHaveBeenCalled();
+  expect(mockTransaction.delete).toHaveBeenCalled();
+  expect(mockTransaction.set).toHaveBeenCalled();
+});
+
+// CANCEL TRAVEL EVENT BOOKING - Fail
+test('cancelTravelEventBooking throws an error if transaction fails', async () => {
+  const mockEventId = 'event123';
+  const mockBookingId = 'booking456';
+
+  const mockError = new Error('Firestore transaction failed');
+
+  // Simulate runTransaction throwing an error
+  (runTransaction as jest.Mock).mockRejectedValueOnce(mockError);
+
+  await expect(
+    cancelTravelEventBooking(mockEventId, mockBookingId)
+  ).rejects.toThrow('Firestore transaction failed');
+
+  expect(runTransaction).toHaveBeenCalled();
+});
+
+// GET TRAVEL EVENT CANCELLED BOOKINGS - Success
+test('getTravelEventCancellations returns cancellations from subcollection', async () => {
   const mockDocs = [
-    { id: '1', data: () => ({ bookerName: 'Alice', seatsBooked: 2, payed: true }) },
-    { id: '2', data: () => ({ bookerName: 'Bob', seatsBooked: 1, payed: false }) },
+    { id: 'c1', data: () => ({ bookerName: 'Charlie', seatsBooked: 3, payed: true, bookerUid: 'uid1', createdAt: 'mocked-timestamp' }) },
+    { id: 'c2', data: () => ({ bookerName: 'Dana', seatsBooked: 1, payed: false, bookerUid: 'uid2', createdAt: 'mocked-timestamp' }) },
   ];
 
   (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
 
+  const cancellations = await getTravelEventCancellations('event999');
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event999');
+  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'cancelledBookings');
+  expect(getDocs).toHaveBeenCalledWith('mocked-collection-ref');
+
+  expect(cancellations).toEqual([
+    {
+      id: 'c1',
+      bookerName: 'Charlie',
+      seatsBooked: 3,
+      payed: true,
+      bookerUid: 'uid1',
+      createdAt: 'mocked-timestamp',
+    },
+    {
+      id: 'c2',
+      bookerName: 'Dana',
+      seatsBooked: 1,
+      payed: false,
+      bookerUid: 'uid2',
+      createdAt: 'mocked-timestamp',
+    },
+  ]);
+});
+
+// GET TRAVEL EVENT CANCELLED BOOKINGS - Fail
+test('getTravelEventCancellations throws an error if getDocs fails', async () => {
+  const errorMessage = 'Firestore getDocs failed for cancellations';
+  (getDocs as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+  await expect(getTravelEventCancellations('event999')).rejects.toThrow(errorMessage);
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event999');
+  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'cancelledBookings');
+});
+
+// GET TRAVEL EVENT BOOKINGS - Success
+test('getTravelEventBookings returns bookings from subcollection', async () => {
+  const mockDocs = [
+    { id: '1', data: () => ({ bookerName: 'Alice', seatsBooked: 2, payed: true, bookerUid: 'userA', createdAt: 'ts1' }) },
+    { id: '2', data: () => ({ bookerName: 'Bob', seatsBooked: 1, payed: false, bookerUid: 'userB', createdAt: 'ts2' }) },
+  ];
+
+  (collection as jest.Mock).mockReturnValue('mocked-collection-ref');
+  (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
+
   const bookings = await getTravelEventBookings('event123');
 
-  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123');
-  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
+  expect(collection).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123', 'bookings');
   expect(getDocs).toHaveBeenCalledWith('mocked-collection-ref');
 
   expect(bookings).toEqual([
-    { id: '1', bookerName: 'Alice', seatsBooked: 2, payed: true },
-    { id: '2', bookerName: 'Bob', seatsBooked: 1, payed: false },
+    {
+      id: '1',
+      bookerName: 'Alice',
+      seatsBooked: 2,
+      payed: true,
+      bookerUid: 'userA',
+      createdAt: 'ts1',
+    },
+    {
+      id: '2',
+      bookerName: 'Bob',
+      seatsBooked: 1,
+      payed: false,
+      bookerUid: 'userB',
+      createdAt: 'ts2',
+    },
   ]);
 });
 
 // GET TRAVEL EVENT BOOKINGS - Fail
 test('getTravelEventBookings throws an error if getDocs fails', async () => {
   const errorMessage = 'Failed to get bookings';
+  (collection as jest.Mock).mockReturnValue('mocked-collection-ref');
   (getDocs as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
 
   await expect(getTravelEventBookings('event123')).rejects.toThrow(errorMessage);
 
-  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123');
-  expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
+  expect(collection).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123', 'bookings');
 });
 
 // SUBSCRIBE TO EVENTS - Success

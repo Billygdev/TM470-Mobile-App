@@ -9,6 +9,7 @@ const TravelEventBookingsScreen = () => {
   const { colors } = useTheme();
   const {
     bookings,
+    cancellations,
     loading,
     error
   } = useTravelEventBookingsViewModel(id as string);
@@ -35,19 +36,57 @@ const TravelEventBookingsScreen = () => {
           <Divider style={{ marginBottom: 8 }} />
 
           {/* Booking rows */}
-          {bookings.map((booking, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={[styles.cell, { color: colors.onBackground }]}>
-                {booking.bookerName}
-              </Text>
-              <Text style={[styles.cell, { color: colors.onBackground }]}>
-                {booking.seatsBooked}
-              </Text>
-              <Text style={[styles.cell, { color: colors.onBackground }]}>
-                {booking.payed ? 'Yes' : 'No'}
-              </Text>
-            </View>
-          ))}
+          {bookings.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.onBackground }]}>No bookings</Text>
+          ) : (
+            bookings.map((booking, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {booking.bookerName}
+                </Text>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {booking.seatsBooked}
+                </Text>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {booking.payed ? 'Yes' : 'No'}
+                </Text>
+              </View>
+            ))
+          )}
+
+          <Divider style={{ marginVertical: 16 }} />
+
+          {/* Cancellations header */}
+          <Text variant="titleMedium" style={[styles.title, { marginTop: 32, color: colors.onBackground }]}>
+            Cancellations
+          </Text>
+
+          {/* Header row */}
+          <View style={styles.tableRow}>
+            <Text style={[styles.headerCell, { color: colors.onBackground }]}>Name</Text>
+            <Text style={[styles.headerCell, { color: colors.onBackground }]}>Seats</Text>
+            <Text style={[styles.headerCell, { color: colors.onBackground }]}>Paid</Text>
+          </View>
+          <Divider style={{ marginBottom: 8 }} />
+
+          {/* Cancellation rows */}
+          {cancellations.length === 0 ? (
+            <Text style={[styles.emptyText, { color: colors.onBackground }]}>No cancellations</Text>
+          ) : (
+            cancellations.map((cancel, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {cancel.bookerName}
+                </Text>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {cancel.seatsBooked}
+                </Text>
+                <Text style={[styles.cell, { color: colors.onBackground }]}>
+                  {cancel.payed ? 'Yes' : 'No'}
+                </Text>
+              </View>
+            ))
+          )}
 
           <Divider style={{ marginVertical: 16 }} />
 
@@ -95,6 +134,10 @@ const styles = StyleSheet.create({
   error: {
     textAlign: 'center',
     marginVertical: 12,
+  },
+  emptyText: {
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 

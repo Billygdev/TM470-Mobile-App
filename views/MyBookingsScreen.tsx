@@ -16,6 +16,8 @@ export default function MyBookingsScreen() {
     handlePaymentCancel,
     handlePaymentSubmit,
     paymentAmount,
+    isCancelling,
+    handleCancelBooking,
   } = useMyBookingsViewModel();
 
   return (
@@ -51,6 +53,8 @@ export default function MyBookingsScreen() {
               payed={item.booking.payed}
               createdAt={item.booking.createdAt}
               onPayPress={() => handlePayNow(item)}
+              isCancelling={isCancelling}
+              onCancelPress={() => handleCancelBooking(item)}
             />
           )}
         />
