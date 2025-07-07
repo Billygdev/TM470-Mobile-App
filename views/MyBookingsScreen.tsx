@@ -3,15 +3,13 @@ import { TravelEventCard } from '@/components/TravelEventCard';
 import { useMyBookingsViewModel } from '@/viewModels/useMyBookingsViewModel';
 import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Searchbar, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Text, useTheme } from 'react-native-paper';
 
 export default function MyBookingsScreen() {
   const { colors } = useTheme();
   const {
     eventsAndBookings,
     loading,
-    searchQuery,
-    setSearchQuery,
     handleEventPress,
     handlePayNow,
     showPaymentModal,
@@ -25,13 +23,6 @@ export default function MyBookingsScreen() {
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         My Bookings
       </Text>
-
-      <Searchbar
-        placeholder="Search"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        style={styles.search}
-      />
 
       {loading ? (
         <ActivityIndicator style={styles.loader} />

@@ -12,7 +12,6 @@ import { useEffect, useState } from 'react';
 export function useMyBookingsViewModel() {
   const [eventsAndBookings, setEventsAndBookings] = useState<UserBookingWithEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -87,8 +86,6 @@ export function useMyBookingsViewModel() {
   return {
     eventsAndBookings,
     loading,
-    searchQuery,
-    setSearchQuery,
     handleEventPress,
     handlePayNow,
     showPaymentModal,
