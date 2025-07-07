@@ -52,7 +52,7 @@ export default function TravelEventDetailsScreen() {
           size={20}
           onPress={() => router.push({
             pathname: '/edit-event/[eventId]',
-            params: { eventId: event.id },
+            params: { eventId: event.id! },
           })}
           accessibilityLabel="Edit Event"
         />
