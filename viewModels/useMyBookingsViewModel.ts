@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import {
+  cancelTravelEventBooking,
   subscribeToUserTravelEventBookings,
   TravelEvent,
   updateTravelEventBooking,
@@ -12,6 +13,7 @@ import { useEffect, useState } from 'react';
 export function useMyBookingsViewModel() {
   const [eventsAndBookings, setEventsAndBookings] = useState<UserBookingWithEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -49,6 +51,35 @@ export function useMyBookingsViewModel() {
     setPaymentBookingId(eventAndBooking.bookingId);
 
     setShowPaymentModal(true);
+  };
+
+  const handleCancelBooking = async (
+    eventAndBooking: UserBookingWithEvent
+  ) => {
+    const confirm = window.confirm(
+      'Are you sure you want to cancel this booking?'
+    );
+
+    if (confirm) {
+      setIsCancelling(true);
+
+      try {
+        await cancelTravelEventBooking(
+          eventAndBooking.eventId,
+          eventAndBooking.bookingId
+        )
+
+        showSnackbar({
+          message: `Your booking for ${eventAndBooking.event.title} was cancelled.`,
+          type: 'success',
+        });
+      } catch (err: any) {
+        console.error(err);
+        showSnackbar({ message: err.message || 'Booking cancellation failed.', type: 'error' });
+      } finally {
+        setIsCancelling(false);
+      }
+    }
   };
 
   // Payment form submission handler
@@ -94,5 +125,7 @@ export function useMyBookingsViewModel() {
     paymentAmount,
     paymentEventId,
     paymentBookingId,
+    isCancelling,
+    handleCancelBooking,
   };
 }
