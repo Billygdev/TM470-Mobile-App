@@ -3,6 +3,7 @@ import {
   getTravelEventCancellations,
   TravelEventBooking
 } from '@/models/firestoreEventModel';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 export const useTravelEventBookingsViewModel = (eventId: string) => {
@@ -10,6 +11,8 @@ export const useTravelEventBookingsViewModel = (eventId: string) => {
   const [cancellations, setCancellations] = useState<TravelEventBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,10 +35,18 @@ export const useTravelEventBookingsViewModel = (eventId: string) => {
     fetchData();
   }, [eventId]);
 
+  const handleMarkEventAttendance = () => {
+    router.push({
+      pathname: '/travel-event-attendance',
+      params: { id: eventId },
+    });
+  };
+
   return {
     bookings,
     cancellations,
     loading,
-    error
+    error,
+    handleMarkEventAttendance,
   };
 }
