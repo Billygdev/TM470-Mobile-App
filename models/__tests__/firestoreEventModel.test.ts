@@ -5,7 +5,6 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
-  query,
   updateDoc
 } from 'firebase/firestore';
 import {
@@ -13,9 +12,12 @@ import {
   createTravelEventBooking,
   getTravelEventBookings,
   getTravelEvents,
+  getUserTravelEventBookings,
   subscribeToTravelEventById,
   subscribeToTravelEvents,
+  subscribeToUserTravelEventBookings,
   updateTravelEvent,
+  updateTravelEventBooking,
 } from '../firestoreEventModel';
 
 // Mock Firebase Firestore
@@ -24,6 +26,7 @@ jest.mock('firebase/firestore', () => ({
   collection: jest.fn(() => 'mocked-collection-ref'),
   doc: jest.fn(() => 'mocked-doc-ref'),
   query: jest.fn(() => 'mocked-query-ref'),
+  where: jest.fn(),
   orderBy: jest.fn(() => 'mocked-order-by'),
   getDocs: jest.fn(),
   getDoc: jest.fn(),
@@ -31,6 +34,7 @@ jest.mock('firebase/firestore', () => ({
   updateDoc: jest.fn(),
   serverTimestamp: jest.fn(() => 'mocked-timestamp'),
   onSnapshot: jest.fn(),
+  collectionGroup: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -110,22 +114,59 @@ test('updateTravelEvent throws if updateDoc fails', async () => {
 
 // GET TRAVEL EVENT - Success
 test('getTravelEvents fetches and returns ordered documents with pickupDate', async () => {
+  // Mock the travel event docs
   const mockDocs = [
-    { id: '1', data: () => ({ title: 'Match A', pickupDate: '2025-07-01' }) },
-    { id: '2', data: () => ({ title: 'Match B', pickupDate: '2025-07-10' }) },
+    {
+      id: '1',
+      data: () => ({
+        title: 'Match A',
+        pickupDate: '2025-07-01',
+        pickupTime: '09:00',
+        destination: 'Leeds',
+        pickupLocation: 'Mansfield',
+        price: '20',
+        seatsAvailable: 30,
+        requirePayment: true,
+        organizerName: 'Billy',
+        organizerUid: 'user123',
+        createdAt: 'mocked-timestamp',
+      }),
+    },
+    {
+      id: '2',
+      data: () => ({
+        title: 'Match B',
+        pickupDate: '2025-07-10',
+        pickupTime: '10:00',
+        destination: 'York',
+        pickupLocation: 'Chesterfield',
+        price: '25',
+        seatsAvailable: 40,
+        requirePayment: false,
+        organizerName: 'Amy',
+        organizerUid: 'user456',
+        createdAt: 'mocked-timestamp',
+      }),
+    },
   ];
 
+  // First getDocs for travelEvents
   (getDocs as jest.Mock).mockResolvedValueOnce({ docs: mockDocs });
+
+  // Then mock getDocs for bookings for each event (once per event)
+  const mockBookingDocs = (seats: number[]) => ({
+    forEach: (cb: any) => seats.forEach(s => cb({ data: () => ({ seatsBooked: s }) })),
+    docs: seats.map(s => ({ data: () => ({ seatsBooked: s }) })),
+  });
+
+  (getDocs as jest.Mock).mockResolvedValueOnce(mockBookingDocs([2, 1])); // for event 1
+  (getDocs as jest.Mock).mockResolvedValueOnce(mockBookingDocs([3]));    // for event 2
 
   const events = await getTravelEvents();
 
-  expect(collection).toHaveBeenCalledWith(expect.anything(), 'travelEvents');
-  expect(query).toHaveBeenCalledWith('mocked-collection-ref', 'mocked-order-by');
-  expect(getDocs).toHaveBeenCalledWith('mocked-query-ref');
-
   expect(events).toEqual([
-    { id: '1', title: 'Match A', pickupDate: '2025-07-01' },
-    { id: '2', title: 'Match B', pickupDate: '2025-07-10' },
+    expect.objectContaining({ id: '1', title: 'Match A', seatsBooked: 3 }),
+    expect.objectContaining({ id: '2', title: 'Match B', seatsBooked: 3 }),
   ]);
 });
 
@@ -138,7 +179,7 @@ test('getTravelEvents throws an error if getDocs fails', async () => {
 });
 
 // TRAVEL EVENT BOOKING - Success
-test('createTravelEventBooking successfully updates seatsBooked and adds a booking', async () => {
+test('createTravelEventBooking successfully adds a booking', async () => {
   const booking = {
     seatsBooked: 2,
     payed: true,
@@ -146,25 +187,31 @@ test('createTravelEventBooking successfully updates seatsBooked and adds a booki
     bookerUid: 'user789',
   };
 
+  // Mock event document
   (getDoc as jest.Mock).mockResolvedValueOnce({
     exists: () => true,
     data: () => ({
       seatsAvailable: 10,
-      seatsBooked: 3, // seats already booked
     }),
   });
 
-  await createTravelEventBooking('event123', booking);
+  // Mock current bookings total (3 already booked)
+  const mockBookingDocs = {
+    forEach: (cb: any) => cb({ data: () => ({ seatsBooked: 3 }) }),
+    docs: [{ data: () => ({ seatsBooked: 3 }) }],
+  };
+  (getDocs as jest.Mock).mockResolvedValueOnce(mockBookingDocs);
 
-  expect(updateDoc).toHaveBeenCalledWith('mocked-doc-ref', {
-    seatsBooked: 5,
-  });
+  await createTravelEventBooking('event123', booking);
 
   expect(collection).toHaveBeenCalledWith('mocked-doc-ref', 'bookings');
   expect(addDoc).toHaveBeenCalledWith('mocked-collection-ref', {
     ...booking,
     createdAt: 'mocked-timestamp',
   });
+
+  // No static update to event doc anymore
+  expect(updateDoc).not.toHaveBeenCalled();
 });
 
 // TRAVEL EVENT BOOKING - Fail (overbooking)
@@ -176,13 +223,20 @@ test('createTravelEventBooking throws an error when booking exceeds available se
     bookerUid: 'user111',
   };
 
+  // Mock event document
   (getDoc as jest.Mock).mockResolvedValueOnce({
     exists: () => true,
     data: () => ({
       seatsAvailable: 5,
-      seatsBooked: 3, // seats already booked
     }),
   });
+
+  // Mock bookings with 3 already booked
+  const mockBookingDocs = {
+    forEach: (cb: any) => cb({ data: () => ({ seatsBooked: 3 }) }),
+    docs: [{ data: () => ({ seatsBooked: 3 }) }],
+  };
+  (getDocs as jest.Mock).mockResolvedValueOnce(mockBookingDocs);
 
   await expect(createTravelEventBooking('event123', booking)).rejects.toThrow(
     'Only 2 seat(s) remaining.'
@@ -190,6 +244,30 @@ test('createTravelEventBooking throws an error when booking exceeds available se
 
   expect(updateDoc).not.toHaveBeenCalled();
   expect(addDoc).not.toHaveBeenCalled();
+});
+
+// UPDATE TRAVEL EVENT BOOKING - Success
+test('updateTravelEventBooking updates the payed status successfully', async () => {
+  (getDoc as jest.Mock).mockResolvedValueOnce({
+    exists: () => true,
+    data: () => ({ payed: false }),
+  });
+
+  await updateTravelEventBooking('event123', 'booking456', true);
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123', 'bookings', 'booking456');
+  expect(updateDoc).toHaveBeenCalledWith('mocked-doc-ref', { payed: true });
+});
+
+// UPDATE TRAVEL EVENT BOOKING - Fail
+test('updateTravelEventBooking throws an error if booking does not exist', async () => {
+  (getDoc as jest.Mock).mockResolvedValueOnce({
+    exists: () => false,
+  });
+
+  await expect(updateTravelEventBooking('event123', 'booking456', true)).rejects.toThrow('Booking not found');
+
+  expect(updateDoc).not.toHaveBeenCalled();
 });
 
 // GET TRAVEL EVENT BOOKINGS - Success
@@ -339,4 +417,216 @@ test('subscribeToTravelEventById calls callback with null if snapshot does not e
   subscribeToTravelEventById('missing-id', mockCallback);
 
   expect(mockCallback).toHaveBeenCalledWith(null);
+});
+
+// GET USER'S TRAVEL EVENT BOOKINGS - Success
+test('getUserTravelEventBookings returns bookings with event data', async () => {
+  const mockBookingDoc = {
+    id: 'booking123',
+    data: () => ({
+      seatsBooked: 2,
+      payed: true,
+      bookerUid: 'user123',
+      bookerName: 'Alice',
+    }),
+    ref: {
+      parent: {
+        parent: 'mocked-event-ref',
+      },
+    },
+  };
+
+  const mockEventSnap = {
+    exists: () => true,
+    id: 'event456',
+    data: () => ({
+      title: 'Match A',
+      destination: 'London',
+      pickupLocation: 'Field Mill',
+      pickupDate: '2025-12-12',
+      pickupTime: '09:00',
+      price: 30,
+      seatsAvailable: 50,
+      requirePayment: true,
+      organizerName: 'Billy',
+      organizerUid: 'user999',
+    }),
+  };
+
+  (getDocs as jest.Mock).mockResolvedValueOnce({ docs: [mockBookingDoc] });
+  (getDoc as jest.Mock).mockResolvedValueOnce(mockEventSnap);
+  (mockBookingDoc.ref.parent.parent as any) = { id: 'event456' }; // simulate parent doc
+
+  const bookings = await getUserTravelEventBookings('user123');
+
+  expect(bookings).toEqual([
+    {
+      bookingId: 'booking123',
+      eventId: 'event456',
+      booking: {
+        id: 'booking123',
+        seatsBooked: 2,
+        payed: true,
+        bookerUid: 'user123',
+        bookerName: 'Alice',
+      },
+      event: {
+        id: 'event456',
+        title: 'Match A',
+        destination: 'London',
+        pickupLocation: 'Field Mill',
+        pickupDate: '2025-12-12',
+        pickupTime: '09:00',
+        price: 30,
+        seatsAvailable: 50,
+        requirePayment: true,
+        organizerName: 'Billy',
+        organizerUid: 'user999',
+      },
+    },
+  ]);
+
+  expect(getDocs).toHaveBeenCalled();
+  expect(getDoc).toHaveBeenCalled();
+});
+
+// GET USER'S TRAVEL EVENT BOOKINGS - Fail
+test('getUserTravelEventBookings skips booking if eventRef is missing', async () => {
+  const mockBookingDoc = {
+    id: 'booking123',
+    data: () => ({
+      seatsBooked: 2,
+      payed: true,
+      bookerUid: 'user123',
+    }),
+    ref: {
+      parent: {
+        parent: null, // simulate missing event reference
+      },
+    },
+  };
+
+  (getDocs as jest.Mock).mockResolvedValueOnce({ docs: [mockBookingDoc] });
+
+  const bookings = await getUserTravelEventBookings('user123');
+
+  expect(bookings).toEqual([]);
+  expect(getDoc).not.toHaveBeenCalled();
+});
+
+// SUBSCRIBE TO USERS BOOKINGS - Success
+test('subscribeToUserTravelEventBookings calls callback with user bookings and event data', async () => {
+  const mockCallback = jest.fn();
+
+  const mockBookingDoc = {
+    id: 'booking123',
+    data: () => ({
+      seatsBooked: 2,
+      payed: false,
+      bookerUid: 'user123',
+      bookerName: 'Test User',
+    }),
+    ref: {
+      parent: {
+        parent: {
+          id: 'event456',
+        },
+      },
+    },
+  };
+
+  const mockEventSnap = {
+    exists: () => true,
+    id: 'event456',
+    data: () => ({
+      title: 'Mock Event',
+      destination: 'Mock City',
+      pickupLocation: 'Mock Location',
+      pickupDate: '2025-12-12',
+      pickupTime: '08:30',
+      price: 50,
+      seatsAvailable: 40,
+      requirePayment: true,
+      organizerName: 'Billy',
+      organizerUid: 'userOrg',
+    }),
+  };
+
+  // Setup mocks
+  (onSnapshot as jest.Mock).mockImplementationOnce((query, handler) => {
+    handler({ docs: [mockBookingDoc] });
+    return () => {}; // unsubscribe fn
+  });
+
+  (getDoc as jest.Mock).mockResolvedValueOnce(mockEventSnap);
+  (getDocs as jest.Mock).mockResolvedValueOnce({
+    forEach: (cb: any) => cb({ data: () => ({ seatsBooked: 2 }) }),
+    docs: [{ data: () => ({ seatsBooked: 2 }) }],
+  });
+
+  const unsubscribe = subscribeToUserTravelEventBookings('user123', mockCallback);
+
+  // Allow async to resolve
+  await new Promise(process.nextTick);
+
+  expect(mockCallback).toHaveBeenCalledWith([
+    {
+      bookingId: 'booking123',
+      eventId: 'event456',
+      booking: {
+        id: 'booking123',
+        seatsBooked: 2,
+        payed: false,
+        bookerUid: 'user123',
+        bookerName: 'Test User',
+      },
+      event: {
+        id: 'event456',
+        title: 'Mock Event',
+        destination: 'Mock City',
+        pickupLocation: 'Mock Location',
+        pickupDate: '2025-12-12',
+        pickupTime: '08:30',
+        price: 50,
+        seatsAvailable: 40,
+        requirePayment: true,
+        organizerName: 'Billy',
+        organizerUid: 'userOrg',
+        seatsBooked: 2,
+      },
+    },
+  ]);
+
+  expect(typeof unsubscribe).toBe('function');
+});
+
+// SUBSCRIBE TO USERS BOOKINGS - Fail
+test('subscribeToUserTravelEventBookings skips booking if eventRef is missing', async () => {
+  const mockCallback = jest.fn();
+
+  const mockBookingDoc = {
+    id: 'booking123',
+    data: () => ({
+      seatsBooked: 1,
+      payed: true,
+      bookerUid: 'user123',
+    }),
+    ref: {
+      parent: {
+        parent: null, // no parent event ref
+      },
+    },
+  };
+
+  (onSnapshot as jest.Mock).mockImplementationOnce((query, handler) => {
+    handler({ docs: [mockBookingDoc] });
+    return () => {};
+  });
+
+  const unsubscribe = subscribeToUserTravelEventBookings('user123', mockCallback);
+
+  await new Promise(process.nextTick);
+
+  expect(mockCallback).toHaveBeenCalledWith([]); // no valid bookings
+  expect(typeof unsubscribe).toBe('function');
 });

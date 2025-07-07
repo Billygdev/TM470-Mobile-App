@@ -1,10 +1,10 @@
 import { TravelEventCard } from '@/components/TravelEventCard';
-import { useTravelEventsViewModel } from '@/viewModels/useTravelEventsViewModel';
+import { useTravelEventsSearchViewModel } from '@/viewModels/useTravelEventsSearchViewModel';
 import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Searchbar, Text, useTheme } from 'react-native-paper';
 
-export default function TravelEventsScreen() {
+export default function TravelEventsSearchScreen() {
   const { colors } = useTheme();
   const {
     events,
@@ -12,12 +12,12 @@ export default function TravelEventsScreen() {
     searchQuery,
     setSearchQuery,
     handleEventPress,
-  } = useTravelEventsViewModel();
+  } = useTravelEventsSearchViewModel();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
-        Upcoming Events
+        Search Events
       </Text>
 
       <Searchbar

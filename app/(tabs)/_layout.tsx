@@ -31,11 +31,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="travel-events"
+        name="search-travel-events"
         options={{
-          title: 'Travel Events',
+          title: 'Search Travel Events',
           tabBarIcon: ({ color }) => (
             <Icon source="calendar" size={28} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="my-bookings"
+        options={{
+          title: 'My Bookings',
+          tabBarIcon: ({ color }) => (
+            <Icon source="calendar-account" size={28} color={color} />
           ),
         }}
       />

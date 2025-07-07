@@ -1,8 +1,9 @@
 import { getTravelEvents, subscribeToTravelEvents, TravelEvent } from '@/models/firestoreEventModel';
+import { travelEventsSearchFilter } from '@/scripts/travelEventsSearchFilter';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-export function useTravelEventsViewModel() {
+export function useTravelEventsSearchViewModel() {
   const [events, setEvents] = useState<TravelEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,14 +37,7 @@ export function useTravelEventsViewModel() {
     });
   };
 
-  const filteredEvents = events.filter(event => {
-    const query = searchQuery.toLowerCase();
-    return (
-      event.title.toLowerCase().includes(query) ||
-      event.destination.toLowerCase().includes(query) ||
-      event.pickupLocation.toLowerCase().includes(query)
-    );
-  });
+  const filteredEvents = travelEventsSearchFilter(events, searchQuery);
 
   return {
     events: filteredEvents,
