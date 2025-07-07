@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
-    Button,
-    Checkbox,
-    HelperText,
-    Text,
-    TextInput,
-    useTheme,
+  Button,
+  Checkbox,
+  HelperText,
+  Text,
+  TextInput,
+  useTheme,
 } from 'react-native-paper';
 
 type EventFormProps = {
@@ -153,7 +153,9 @@ export const EventForm: React.FC<EventFormProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    paddingTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
     justifyContent: 'center',
   },
   title: {

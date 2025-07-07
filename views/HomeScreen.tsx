@@ -30,24 +30,7 @@ export default function HomeScreen() {
 
       <Divider style={{ marginVertical: 16 }} />
 
-      {/* THESE ARE TEST BUTTONS AND WILL BE REPLACED AT A LATER DATE */}
-      <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
-        Test Buttons
-      </Text>
-
-      <ThemeToggleButton />
-      <LogoutButton />
-
-      <Button
-        mode="contained"
-        onPress={navigateToCreateEvent}
-        style={styles.createEventButton}
-      >
-        Create Event
-      </Button>
-
-      <Divider style={{ marginVertical: 16 }} />
-
+      {/* NEWS SECTION */}
       <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
         News
       </Text>
@@ -63,6 +46,24 @@ export default function HomeScreen() {
           ))}
         </View>
       )}
+
+      <Divider style={{ marginVertical: 16 }} />
+
+      {/* THESE ARE TEST BUTTONS AND WILL BE REPLACED AT A LATER DATE */}
+      <Text variant="titleMedium" style={[styles.subTitle, { color: colors.onBackground }]}>
+        Test Buttons
+      </Text>
+
+      <ThemeToggleButton />
+      <LogoutButton />
+
+      <Button
+        mode="contained"
+        onPress={navigateToCreateEvent}
+        style={styles.createEventButton}
+      >
+        Create Event
+      </Button>
     </ScrollView>
   );
 }
@@ -70,7 +71,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 24,
+    paddingTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
     justifyContent: 'flex-start',
   },
   mainTitle: {

@@ -21,6 +21,7 @@ import {
   subscribeToUserTravelEventBookings,
   updateTravelEvent,
   updateTravelEventBooking,
+  updateTravelEventBookingAttendance,
 } from '../firestoreEventModel';
 
 // Mock Firebase Firestore
@@ -744,4 +745,33 @@ test('subscribeToUserTravelEventBookings skips booking if eventRef is missing', 
 
   expect(mockCallback).toHaveBeenCalledWith([]); // no valid bookings
   expect(typeof unsubscribe).toBe('function');
+});
+
+// UPDATE TRAVEL EVENT BOOKING ATTENDANCE - Success
+test('updateTravelEventBookingAttendance updates attendance and seatsAttended successfully', async () => {
+  await updateTravelEventBookingAttendance('event123', 'booking456', {
+    attended: true,
+    seatsAttended: 2,
+  });
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event123', 'bookings', 'booking456');
+  expect(updateDoc).toHaveBeenCalledWith('mocked-doc-ref', {
+    attended: true,
+    seatsAttended: 2,
+  });
+});
+
+// UPDATE TRAVEL EVENT BOOKING ATTENDANCE - Fail
+test('updateTravelEventBookingAttendance throws an error if updateDoc fails', async () => {
+  const errorMessage = 'Failed to update attendance';
+  (updateDoc as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+  await expect(
+    updateTravelEventBookingAttendance('event999', 'booking999', {
+      attended: false,
+      seatsAttended: 0,
+    })
+  ).rejects.toThrow(errorMessage);
+
+  expect(doc).toHaveBeenCalledWith(expect.anything(), 'travelEvents', 'event999', 'bookings', 'booking999');
 });

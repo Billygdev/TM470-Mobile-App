@@ -38,6 +38,8 @@ export interface TravelEventBooking {
   bookerName: string;
   bookerUid: string;
   createdAt?: any;
+  attended?: boolean;
+  seatsAttended?: number;
 }
 
 export interface UserBookingWithEvent {
@@ -456,4 +458,17 @@ export const subscribeToUserTravelEventBookings = (
   });
 
   return unsubscribe;
+};
+
+// MARK TRAVEL EVENT ATTENDANCE
+export const updateTravelEventBookingAttendance = async (
+  eventId: string,
+  bookingId: string,
+  updates: { attended: boolean; seatsAttended: number }
+) => {
+  const ref = doc(firestore, 'travelEvents', eventId, 'bookings', bookingId);
+  await updateDoc(ref, {
+    attended: updates.attended,
+    seatsAttended: updates.seatsAttended,
+  });
 };

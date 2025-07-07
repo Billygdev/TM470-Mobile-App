@@ -58,7 +58,9 @@ export default function TravelEventsSearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
   },
   title: {
     marginBottom: 16,

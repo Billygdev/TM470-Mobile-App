@@ -11,7 +11,8 @@ const TravelEventBookingsScreen = () => {
     bookings,
     cancellations,
     loading,
-    error
+    error,
+    handleMarkEventAttendance,
   } = useTravelEventBookingsViewModel(id as string);
 
   return (
@@ -56,8 +57,19 @@ const TravelEventBookingsScreen = () => {
 
           <Divider style={{ marginVertical: 16 }} />
 
+          {/* Mark event attendance */}
+          <Button
+            mode="contained"
+            style={styles.button}
+            onPress={handleMarkEventAttendance}
+          >
+            Mark Attendance
+          </Button>
+
+          <Divider style={{ marginVertical: 16 }} />
+
           {/* Cancellations header */}
-          <Text variant="titleMedium" style={[styles.title, { marginTop: 32, color: colors.onBackground }]}>
+          <Text variant="titleMedium" style={[styles.title, { color: colors.onBackground }]}>
             Cancellations
           </Text>
 
@@ -87,17 +99,6 @@ const TravelEventBookingsScreen = () => {
               </View>
             ))
           )}
-
-          <Divider style={{ marginVertical: 16 }} />
-
-          {/* TODO: attendance marking in user story #6 */}
-          <Button
-            mode="contained"
-            style={styles.button}
-            onPress={() => {}}
-          >
-            Mark Attendance
-          </Button>
         </>
       )}
     </ScrollView>
@@ -107,7 +108,9 @@ const TravelEventBookingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 24,
+    paddingTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
   },
   title: {
     marginBottom: 24,
