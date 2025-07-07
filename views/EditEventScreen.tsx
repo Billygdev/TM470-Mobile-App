@@ -1,8 +1,8 @@
 import { EventForm } from '@/components/EventForm';
-import { useCreateEventViewModel } from '@/viewModels/useCreateEventViewModel';
+import { useEditEventViewModel } from '@/viewModels/useEditEventViewModel';
 import React from 'react';
 
-export default function CreateEventScreen() {
+export default function EditEventScreen() {
   const {
     title,
     setTitle,
@@ -22,9 +22,9 @@ export default function CreateEventScreen() {
     setRequirePayment,
     loading,
     error,
-    handleCreateEvent,
+    handleUpdateEvent,
     navigateBack,
-  } = useCreateEventViewModel();
+  } = useEditEventViewModel();
 
   return (
     <EventForm
@@ -46,9 +46,9 @@ export default function CreateEventScreen() {
       setRequirePayment={setRequirePayment}
       loading={loading}
       error={error}
-      onSubmit={handleCreateEvent}
+      onSubmit={handleUpdateEvent}
       onCancel={navigateBack}
-      submitLabel="Create"
+      submitLabel="Update"
     />
   );
 }

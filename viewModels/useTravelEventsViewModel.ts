@@ -1,4 +1,4 @@
-import { getTravelEvents, TravelEvent } from '@/models/firestoreEventModel';
+import { getTravelEvents, subscribeToTravelEvents, TravelEvent } from '@/models/firestoreEventModel';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
@@ -21,6 +21,12 @@ export function useTravelEventsViewModel() {
     };
 
     fetchEvents();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    const unsubscribe = subscribeToTravelEvents(setEvents, setLoading);
+    return () => unsubscribe();
   }, []);
 
   const handleEventPress = (event: TravelEvent) => {
