@@ -1,11 +1,13 @@
 import { PaymentModal } from '@/components/PaymentModal';
 import { useTravelEventDetailsViewModel } from '@/viewModels/useTravelEventDetailsViewModel';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   Button,
   Divider,
   HelperText,
+  IconButton,
   Text,
   TextInput,
   useTheme,
@@ -13,6 +15,7 @@ import {
 
 export default function TravelEventDetailsScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const {
     event,
     seatsRequired,
@@ -40,9 +43,20 @@ export default function TravelEventDetailsScreen() {
         Travel Event
       </Text>
 
-      <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
-        Details
-      </Text>
+      <View style={styles.sectionHeaderWithIcon}>
+        <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
+          Details
+        </Text>
+        <IconButton
+          icon="pencil"
+          size={20}
+          onPress={() => router.push({
+            pathname: '/edit-event/[eventId]',
+            params: { eventId: event.id },
+          })}
+          accessibilityLabel="Edit Event"
+        />
+      </View>
 
       <View style={styles.detailRow}>
         <Text style={[styles.label, { color: colors.onBackground }]}>Event Title:</Text>
@@ -179,5 +193,12 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
+  },
+    sectionHeaderWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    marginBottom: 12,
   },
 });

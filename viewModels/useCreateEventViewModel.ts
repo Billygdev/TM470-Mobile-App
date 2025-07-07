@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import { createTravelEvent } from '@/models/firestoreEventModel';
+import { validateTravelEventFields } from '@/scripts/validateTravelEventFields';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
@@ -20,37 +21,18 @@ export function useCreateEventViewModel() {
   const router = useRouter();
   const { showSnackbar } = useSnackbar();
 
-  const validateFields = () => {
-    if (
-      !title ||
-      !destination ||
-      !pickupLocation ||
-      !pickupDate ||
-      !pickupTime ||
-      !price ||
-      !seatsAvailable
-    ) {
-      return 'All fields are required.';
-    }
-
-    if (isNaN(Number(price))) {
-      return 'Price must be a number.';
-    }
-
-    if (
-      isNaN(Number(seatsAvailable)) ||
-      !Number.isInteger(Number(seatsAvailable))
-    ) {
-      return 'Seats available must be a whole number.';
-    }
-
-    return '';
-  };
-
   const handleCreateEvent = async () => {
     setError('');
 
-    const validationError = validateFields();
+    const validationError = validateTravelEventFields({
+      title,
+      destination,
+      pickupLocation,
+      pickupDate,
+      pickupTime,
+      price,
+      seatsAvailable,
+    });
 
     if (validationError) {
       setError(validationError);
@@ -75,7 +57,7 @@ export function useCreateEventViewModel() {
 
       showSnackbar({ message: 'Event created successfully!', type: 'success' });
 
-      router.replace('/');
+      router.back();
     } catch (err: any) {
       console.error('Create event error:', err);
 
@@ -90,9 +72,7 @@ export function useCreateEventViewModel() {
     }
   };
 
-  const navigateToHome = async () => {
-    router.replace('/');
-  };
+  const navigateBack = () => router.back();
 
   return {
     title,
@@ -114,6 +94,6 @@ export function useCreateEventViewModel() {
     loading,
     error,
     handleCreateEvent,
-    navigateToHome,
+    navigateBack,
   };
 }

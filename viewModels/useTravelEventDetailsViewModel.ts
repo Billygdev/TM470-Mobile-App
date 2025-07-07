@@ -2,8 +2,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import {
   createTravelEventBooking,
-  getTravelEventById,
-  TravelEvent,
+  subscribeToTravelEventById,
+  TravelEvent
 } from '@/models/firestoreEventModel';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -22,18 +22,17 @@ export function useTravelEventDetailsViewModel() {
   const router = useRouter();
 
   useEffect(() => {
-    const getEvent = async () => {
-      try {
-        const fetchedEvent = await getTravelEventById(id);
-        setEvent(fetchedEvent);
-      } catch (error) {
-        console.error('Failed to fetch event details:', error);
-      }
-    };
+    if (!id) return;
 
-    if (id) {
-      getEvent();
-    }
+    const unsubscribe = subscribeToTravelEventById(id, (fetchedEvent) => {
+      if (fetchedEvent) {
+        setEvent(fetchedEvent);
+      } else {
+        console.warn('Travel event not found.');
+      }
+    });
+
+    return () => unsubscribe();
   }, [id]);
 
   const validateField = () => {
@@ -96,9 +95,6 @@ export function useTravelEventDetailsViewModel() {
         bookerUid: user!.uid,
       });
 
-      // Refetch the updated event details
-      const updatedEvent = await getTravelEventById(event!.id!);
-      setEvent(updatedEvent);
       setSeatsRequired('');
 
       showSnackbar({ message: 'Booking saved, pending payment.', type: 'success' });
@@ -121,9 +117,6 @@ export function useTravelEventDetailsViewModel() {
         bookerUid: user!.uid,
       });
 
-      const updated = await getTravelEventById(event!.id!);
-
-      setEvent(updated);
       setSeatsRequired('');
 
       showSnackbar({ message: 'Payment successful and booking complete.', type: 'success' });

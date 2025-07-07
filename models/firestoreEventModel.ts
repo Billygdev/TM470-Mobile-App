@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -49,6 +50,16 @@ export const createTravelEvent = async (
   });
 };
 
+// UPDATE TRAVEL EVENT
+export async function updateTravelEvent(eventId: string, data: Partial<any>) {
+  const colRef = doc(firestore, 'travelEvents', eventId);
+
+  await updateDoc(colRef, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 // GET ALL TRAVEL EVENTS
 export const getTravelEvents = async (): Promise<TravelEvent[]> => {
   const colRef = collection(firestore, 'travelEvents');
@@ -67,6 +78,44 @@ export const getTravelEvents = async (): Promise<TravelEvent[]> => {
   }) as TravelEvent[];
 };
 
+// SUBSCRIBE TO ALL TRAVEL EVENTS (FOR LIVE UPDATES)
+export const subscribeToTravelEvents = (
+  callback: (events: TravelEvent[]) => void,
+  setLoading?: (val: boolean) => void
+): (() => void) => {
+  const colRef = collection(firestore, 'travelEvents');
+  const q = query(colRef, orderBy('pickupDate'));
+
+  if (setLoading) setLoading(true);
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const events: TravelEvent[] = snapshot.docs.map((docSnap) => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        title: data.title,
+        destination: data.destination,
+        pickupLocation: data.pickupLocation,
+        pickupDate: data.pickupDate,
+        pickupTime: data.pickupTime,
+        price: typeof data.price === 'string' ? parseFloat(data.price) : data.price,
+        seatsAvailable: data.seatsAvailable,
+        seatsBooked: data.seatsBooked ?? 0,
+        requirePayment: data.requirePayment,
+        organizerName: data.organizerName,
+        organizerUid: data.organizerUid,
+        createdAt: data.createdAt,
+      };
+    });
+
+    callback(events);
+
+    if (setLoading) setLoading(false);
+  });
+
+  return unsubscribe;
+};
+
 // GET ONE TRAVEL EVENT
 export const getTravelEventById = async (id: string): Promise<TravelEvent> => {
   const docRef = doc(firestore, 'travelEvents', id);
@@ -83,6 +132,41 @@ export const getTravelEventById = async (id: string): Promise<TravelEvent> => {
     ...data,
     price: typeof data.price === 'string' ? parseFloat(data.price) : data.price,
   } as TravelEvent;
+};
+
+// SUBSCRIBE TO ONE TRAVEL EVENT (FOR LIVE UPDATES)
+export const subscribeToTravelEventById = (
+  id: string,
+  callback: (event: TravelEvent | null) => void
+): (() => void) => {
+  const docRef = doc(firestore, 'travelEvents', id);
+
+  return onSnapshot(docRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      callback(null);
+      return;
+    }
+
+    const data = snapshot.data();
+
+    const event: TravelEvent = {
+      id: snapshot.id,
+      title: data.title,
+      destination: data.destination,
+      pickupLocation: data.pickupLocation,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+      price: typeof data.price === 'string' ? Number(data.price) : data.price,
+      seatsAvailable: data.seatsAvailable,
+      seatsBooked: data.seatsBooked ?? 0,
+      requirePayment: data.requirePayment,
+      organizerName: data.organizerName,
+      organizerUid: data.organizerUid,
+      createdAt: data.createdAt,
+    };
+
+    callback(event);
+  });
 };
 
 // BOOK ONTO TRAVEL EVENT
