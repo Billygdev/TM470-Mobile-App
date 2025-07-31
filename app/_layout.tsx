@@ -1,7 +1,9 @@
 import { darkTheme, lightTheme } from '@/constants/Themes';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 import { SnackbarProvider } from '@/contexts/SnackbarContext';
 import { ThemeProvider as CustomThemeProvider, useThemeMode } from '@/contexts/ThemeContext';
+import GlobalListeners from '@/listeners/GlobalListeners';
 import { DarkTheme as NavDarkTheme, DefaultTheme as NavLightTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -37,11 +39,14 @@ function InnerLayout() {
       <PaperProvider theme={paperTheme}>
         <ThemeProvider value={navTheme}>
           <SnackbarProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style={statusBarStyle} />
+            <NotificationProvider>
+              <GlobalListeners />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style={statusBarStyle} />
+            </NotificationProvider>
           </SnackbarProvider>
         </ThemeProvider>
       </PaperProvider>
