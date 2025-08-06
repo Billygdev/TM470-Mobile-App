@@ -6,9 +6,11 @@ import {
   getDocs,
   onSnapshot,
   runTransaction,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'firebase/firestore';
 import {
+  cancelTravelEvent,
   cancelTravelEventBooking,
   createTravelEvent,
   createTravelEventBooking,
@@ -41,6 +43,7 @@ jest.mock('firebase/firestore', () => ({
   onSnapshot: jest.fn(),
   collectionGroup: jest.fn(),
   runTransaction: jest.fn(),
+  writeBatch: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -274,6 +277,84 @@ test('updateTravelEventBooking throws an error if booking does not exist', async
   await expect(updateTravelEventBooking('event123', 'booking456', true)).rejects.toThrow('Booking not found');
 
   expect(updateDoc).not.toHaveBeenCalled();
+});
+
+// CANCEL TRAVEL EVENT - Success
+test('cancelTravelEvent moves event doc and subcollections successfully', async () => {
+  const mockEventId = 'event123';
+
+  const mockEventData = {
+    title: 'Mock Event',
+    date: '25/12/2025',
+  };
+
+  const mockTransaction = {
+    get: jest.fn().mockResolvedValueOnce({
+      exists: () => true,
+      data: () => mockEventData,
+    }),
+    delete: jest.fn(),
+    set: jest.fn(),
+  };
+
+  const mockBookingsSnap = {
+    forEach: (callback: any) => {
+      callback({
+        id: 'booking1',
+        data: () => ({ bookerUid: 'user1', seats: 2 }),
+      });
+    },
+  };
+
+  const mockCancelledBookingsSnap = {
+    forEach: (callback: any) => {
+      callback({
+        id: 'cancelled1',
+        data: () => ({ bookerUid: 'user2', seats: 1 }),
+      });
+    },
+  };
+
+  (getDocs as jest.Mock)
+    .mockResolvedValueOnce(mockBookingsSnap)
+    .mockResolvedValueOnce(mockCancelledBookingsSnap);
+
+  (runTransaction as jest.Mock).mockImplementationOnce((db, callback) =>
+    callback(mockTransaction)
+  );
+
+  const mockBatch = {
+    set: jest.fn(),
+    delete: jest.fn(),
+    commit: jest.fn().mockResolvedValueOnce(undefined),
+  };
+
+  (writeBatch as jest.Mock).mockReturnValueOnce(mockBatch);
+
+  await cancelTravelEvent(mockEventId);
+
+  expect(mockTransaction.get).toHaveBeenCalled();
+  expect(mockTransaction.delete).toHaveBeenCalled();
+  expect(mockTransaction.set).toHaveBeenCalled();
+
+  expect(mockBatch.set).toHaveBeenCalledTimes(2); // one booking, one cancelledBooking
+  expect(mockBatch.delete).toHaveBeenCalledTimes(2);
+  expect(mockBatch.commit).toHaveBeenCalled();
+});
+
+// CANCEL TRAVEL EVENT - Fail
+test('cancelTravelEvent throws an error if transaction fails', async () => {
+  const mockEventId = 'event123';
+  const mockError = new Error('Transaction failure');
+
+  (getDocs as jest.Mock).mockResolvedValue({ forEach: jest.fn() });
+
+  // simulate transaction failure
+  (runTransaction as jest.Mock).mockRejectedValueOnce(mockError);
+
+  await expect(cancelTravelEvent(mockEventId)).rejects.toThrow('Transaction failure');
+
+  expect(runTransaction).toHaveBeenCalled();
 });
 
 // CANCEL TRAVEL EVENT BOOKING - Success
