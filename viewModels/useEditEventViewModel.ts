@@ -1,4 +1,5 @@
-import { TravelEvent, getTravelEventById, updateTravelEvent } from '@/models/firestoreEventModel';
+import { useSnackbar } from '@/contexts/SnackbarContext';
+import { TravelEvent, cancelTravelEvent, getTravelEventById, updateTravelEvent } from '@/models/firestoreEventModel';
 import { validateTravelEventFields } from '@/scripts/validateTravelEventFields';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ export function useEditEventViewModel() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showSnackbar } = useSnackbar();
 
   // Load event on mount
   useEffect(() => {
@@ -90,6 +92,37 @@ export function useEditEventViewModel() {
     }
   };
 
+  const handleCancelEvent = async () => {
+    // TODO (out of scope of prototype):
+    // 1. Notification to booked on users about cancellation.
+    // 2. Refund paid bookings.
+    // 3. List cancelled events somewhere in app.
+
+    const confirm = window.confirm(
+      'Are you sure you want to cancel this event?'
+    );
+
+    if (confirm) {
+      setLoading(true);
+
+      try {
+        await cancelTravelEvent(eventId)
+
+        showSnackbar({
+          message: `Your event has been cancelled.`,
+          type: 'success',
+        });
+
+        router.replace('/');
+      } catch (err: any) {
+        console.error(err);
+        showSnackbar({ message: err.message || 'Event cancellation failed.', type: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
   const navigateBack = () => router.back();
 
   return {
@@ -112,6 +145,7 @@ export function useEditEventViewModel() {
     loading,
     error,
     handleUpdateEvent,
+    handleCancelEvent,
     navigateBack,
     submittingUpdate: submitting,
   };

@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 export interface TravelEvent {
@@ -296,6 +297,79 @@ export const updateTravelEventBooking = async (
   }
 
   await updateDoc(bookingRef, { payed });
+};
+
+// CANCEL A TRAVEL EVENT (Archive)
+export const cancelTravelEvent = async (
+  eventId: string
+): Promise<void> => {
+  const eventRef = doc(firestore, 'travelEvents', eventId);
+  const cancelledEventRef = doc(firestore, 'travelEventsCancelled', eventId);
+
+  const bookingsRef = collection(eventRef, 'bookings');
+  const cancelledBookingsRef = collection(eventRef, 'cancelledBookings');
+
+  const bookingsSnap = await getDocs(bookingsRef);
+  const cancelledBookingsSnap = await getDocs(cancelledBookingsRef);
+
+  // use transaction to ensure all or nothing is done
+  await runTransaction(firestore, async (transaction) => {
+    const eventSnap = await transaction.get(eventRef);
+    if (!eventSnap.exists()) {
+      throw new Error('Travel event not found');
+    }
+
+    const eventData = eventSnap.data();
+
+    // delete from 'travelEvents'
+    transaction.delete(eventRef);
+
+    // add to 'travelEventsCancelled'
+    transaction.set(cancelledEventRef, {
+      ...eventData,
+      cancelledAt: serverTimestamp(),
+    });
+  });
+
+  // move subcollections in a batch
+  // (there is a 500 limit but shouldn't be an issue yet)
+  const batch = writeBatch(firestore);
+
+  // move bookings
+  bookingsSnap.forEach((docSnap) => {
+    const sourceData = docSnap.data();
+    const targetRef = doc(
+      firestore,
+      'travelEventsCancelled',
+      eventId,
+      'bookings',
+      docSnap.id
+    );
+
+    const originalRef = doc(bookingsRef, docSnap.id);
+
+    batch.set(targetRef, sourceData);
+    batch.delete(originalRef);
+  });
+
+  // move cancelledBookings
+  cancelledBookingsSnap.forEach((docSnap) => {
+    const sourceData = docSnap.data();
+    const targetRef = doc(
+      firestore,
+      'travelEventsCancelled',
+      eventId,
+      'cancelledBookings',
+      docSnap.id
+    );
+
+    const originalRef = doc(cancelledBookingsRef, docSnap.id);
+
+    batch.set(targetRef, sourceData);
+    batch.delete(originalRef);
+  });
+
+  await batch.commit();
 };
 
 // CANCEL A TRAVEL EVENT BOOKING (Archive)

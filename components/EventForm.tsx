@@ -29,8 +29,10 @@ type EventFormProps = {
   loading: boolean;
   error?: string | null;
   onSubmit: () => void;
-  onCancel: () => void;
+  onBack: () => void;
   submitLabel?: string;
+  canCancel?: boolean | null;
+  onCancelEvent?: () => void;
 };
 
 export const EventForm: React.FC<EventFormProps> = ({
@@ -53,8 +55,10 @@ export const EventForm: React.FC<EventFormProps> = ({
   loading,
   error,
   onSubmit,
-  onCancel,
+  onBack,
   submitLabel = 'Submit',
+  canCancel,
+  onCancelEvent,
 }) => {
   const { colors } = useTheme();
 
@@ -139,12 +143,30 @@ export const EventForm: React.FC<EventFormProps> = ({
         </HelperText>
       )}
 
-      <Button mode="contained" onPress={onSubmit} loading={loading} disabled={loading} style={styles.button}>
+      <Button
+        mode="contained"
+        onPress={onSubmit}
+        loading={loading}
+        disabled={loading}
+        style={styles.button}
+      >
         {submitLabel}
       </Button>
 
-      <Button mode="text" onPress={onCancel} style={styles.button}>
-        Cancel
+      {canCancel && (
+        <Button
+          mode="contained"
+          onPress={onCancelEvent}
+          loading={loading}
+          disabled={loading}
+          style={styles.button}
+        >
+          Cancel Event
+        </Button>
+      )}
+
+      <Button mode="text" onPress={onBack} style={styles.button}>
+        Back
       </Button>
     </View>
   );

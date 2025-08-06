@@ -47,7 +47,7 @@ export default function CreateEventScreen() {
       loading={loading}
       error={error}
       onSubmit={handleCreateEvent}
-      onCancel={navigateBack}
+      onBack={navigateBack}
       submitLabel="Create"
     />
   );

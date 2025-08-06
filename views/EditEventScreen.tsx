@@ -24,6 +24,7 @@ export default function EditEventScreen() {
     error,
     handleUpdateEvent,
     navigateBack,
+    handleCancelEvent,
   } = useEditEventViewModel();
 
   return (
@@ -47,8 +48,10 @@ export default function EditEventScreen() {
       loading={loading}
       error={error}
       onSubmit={handleUpdateEvent}
-      onCancel={navigateBack}
+      onBack={navigateBack}
       submitLabel="Update"
+      canCancel={true}
+      onCancelEvent={handleCancelEvent}
     />
   );
 }
