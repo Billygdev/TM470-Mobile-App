@@ -280,6 +280,7 @@ export const createTravelEventBooking = async (
   await addDoc(bookingsRef, {
     ...booking,
     createdAt: serverTimestamp(),
+    cancelledAt: null,
   });
 };
 
@@ -348,7 +349,11 @@ export const cancelTravelEvent = async (
 
     const originalRef = doc(bookingsRef, docSnap.id);
 
-    batch.set(targetRef, sourceData);
+    batch.set(targetRef, {
+      ...sourceData,
+      cancelledAt: serverTimestamp(),
+    });
+
     batch.delete(originalRef);
   });
 
@@ -442,13 +447,36 @@ export const getTravelEventBookings = async (
   }));
 };
 
+// GET SPECIFIC USER'S TRAVEL EVENT BOOKING FOR A SPECIFIC EVENT
+export const getUserTravelEventBooking = async (
+  userUid: string,
+  eventId: string
+): Promise<TravelEventBooking | null> => {
+  const bookingsQuery = query(
+    collection(firestore, `travelEvents/${eventId}/bookings`),
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
+  );
+
+  const snap = await getDocs(bookingsQuery);
+  if (snap.empty) return null;
+
+  const docSnap = snap.docs[0]; // expect at most one
+  
+  return {
+    id: docSnap.id,
+    ...(docSnap.data() as Omit<TravelEventBooking, 'id'>)
+  };
+};
+
 // GET SPECIFIC USER'S TRAVEL EVENT BOOKINGS
 export const getUserTravelEventBookings = async (
   userUid: string
 ): Promise<UserBookingWithEvent[]> => {
   const bookingsQuery = query(
     collectionGroup(firestore, 'bookings'),
-    where('bookerUid', '==', userUid)
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
   );
 
   const bookingsSnap = await getDocs(bookingsQuery);
@@ -492,7 +520,8 @@ export const subscribeToUserTravelEventBookings = (
 ): (() => void) => {
   const bookingsQuery = query(
     collectionGroup(firestore, 'bookings'),
-    where('bookerUid', '==', userUid)
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
   );
 
   const unsubscribe = onSnapshot(bookingsQuery, async (snapshot) => {
