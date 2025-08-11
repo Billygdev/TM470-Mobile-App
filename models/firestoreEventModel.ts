@@ -280,6 +280,7 @@ export const createTravelEventBooking = async (
   await addDoc(bookingsRef, {
     ...booking,
     createdAt: serverTimestamp(),
+    cancelledAt: null,
   });
 };
 
@@ -348,7 +349,11 @@ export const cancelTravelEvent = async (
 
     const originalRef = doc(bookingsRef, docSnap.id);
 
-    batch.set(targetRef, sourceData);
+    batch.set(targetRef, {
+      ...sourceData,
+      cancelledAt: serverTimestamp(),
+    });
+
     batch.delete(originalRef);
   });
 
@@ -448,7 +453,8 @@ export const getUserTravelEventBookings = async (
 ): Promise<UserBookingWithEvent[]> => {
   const bookingsQuery = query(
     collectionGroup(firestore, 'bookings'),
-    where('bookerUid', '==', userUid)
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
   );
 
   const bookingsSnap = await getDocs(bookingsQuery);
@@ -492,7 +498,8 @@ export const subscribeToUserTravelEventBookings = (
 ): (() => void) => {
   const bookingsQuery = query(
     collectionGroup(firestore, 'bookings'),
-    where('bookerUid', '==', userUid)
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
   );
 
   const unsubscribe = onSnapshot(bookingsQuery, async (snapshot) => {
