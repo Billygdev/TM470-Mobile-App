@@ -27,6 +27,11 @@ export default function TravelEventDetailsScreen() {
     error,
     loading,
     handleViewEventBookings,
+    booking,
+    handlePayNow,
+    paymentAmount,
+    handleCancelBooking,
+    isCancelling,
   } = useTravelEventDetailsViewModel();
 
   if (!event) {
@@ -109,28 +114,74 @@ export default function TravelEventDetailsScreen() {
 
       <Divider style={{ marginVertical: 16 }} />
 
-      <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
-        Join Event
-      </Text>
+      {!booking ? (
+        <View>
+          <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
+            Join Event
+          </Text>
 
-      <TextInput
-        label="Number of Seats Required"
-        value={seatsRequired}
-        onChangeText={setSeatsRequired}
-        mode="outlined"
-        keyboardType="numeric"
-        style={styles.input}
-      />
+          <TextInput
+            label="Number of Seats Required"
+            value={seatsRequired}
+            onChangeText={setSeatsRequired}
+            mode="outlined"
+            keyboardType="numeric"
+            style={styles.input}
+          />
 
-      <Button
-        mode="contained"
-        onPress={handleJoinEvent}
-        style={styles.button}
-        loading={loading}
-        disabled={loading}
-      >
-        Join Event
-      </Button>
+          <Button
+            mode="contained"
+            onPress={handleJoinEvent}
+            style={styles.button}
+            loading={loading}
+            disabled={loading}
+          >
+            Join Event
+          </Button>
+        </View>
+      ) : (
+        <View>
+          <View style={styles.sectionHeaderWithIcon}>
+            <Text variant="titleMedium" style={[styles.sectionHeader, { color: colors.onBackground }]}>
+              Manage Booking
+            </Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={[styles.label, { color: colors.onBackground }]}>Seats Booked:</Text>
+            <Text style={[styles.value, { color: colors.onBackground }]}>{booking.seatsBooked}</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={[styles.label, { color: colors.onBackground }]}>Paid:</Text>
+            <Text style={[styles.value, { color: colors.onBackground }]}>{booking.payed ? 'Yes' : 'No'}</Text>
+          </View>
+
+          <View style={styles.actionRow}>
+            {!booking.payed && (
+              <Button
+                mode="contained"
+                compact
+                onPress={handlePayNow}
+                style={styles.payButton}
+              >
+                Pay Now
+              </Button>
+            )}
+
+            <Button
+              mode="outlined"
+              compact
+              onPress={handleCancelBooking}
+              style={styles.cancelButton}
+              loading={isCancelling}
+              disabled={isCancelling}
+            >
+              Cancel Booking
+            </Button>
+          </View>
+        </View>
+      )}
 
       {!!error && (
         <HelperText type="error" visible>
@@ -154,7 +205,7 @@ export default function TravelEventDetailsScreen() {
         visible={showPaymentModal}
         onClose={handlePaymentCancel}
         onSubmit={handlePaymentSubmit}
-        amount={event.price * Number(seatsRequired || 1)}
+        amount={paymentAmount}
       />
     </View>
   );
@@ -173,7 +224,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionHeader: {
-    marginTop: 16,
     marginBottom: 12,
     fontWeight: '600',
   },
@@ -200,7 +250,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 12,
+  },
+  actionRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  payButton: {
+    flex: 1,
+    marginRight: 8
+  },
+  cancelButton: {
+    alignSelf: 'flex-end',
   },
 });

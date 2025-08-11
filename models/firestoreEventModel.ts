@@ -447,6 +447,28 @@ export const getTravelEventBookings = async (
   }));
 };
 
+// GET SPECIFIC USER'S TRAVEL EVENT BOOKING FOR A SPECIFIC EVENT
+export const getUserTravelEventBooking = async (
+  userUid: string,
+  eventId: string
+): Promise<TravelEventBooking | null> => {
+  const bookingsQuery = query(
+    collection(firestore, `travelEvents/${eventId}/bookings`),
+    where('bookerUid', '==', userUid),
+    where('cancelledAt', '==', null)
+  );
+
+  const snap = await getDocs(bookingsQuery);
+  if (snap.empty) return null;
+
+  const docSnap = snap.docs[0]; // expect at most one
+  
+  return {
+    id: docSnap.id,
+    ...(docSnap.data() as Omit<TravelEventBooking, 'id'>)
+  };
+};
+
 // GET SPECIFIC USER'S TRAVEL EVENT BOOKINGS
 export const getUserTravelEventBookings = async (
   userUid: string

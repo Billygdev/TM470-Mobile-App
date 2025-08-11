@@ -1,12 +1,16 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useSnackbar } from '@/contexts/SnackbarContext';
 import {
+  cancelTravelEventBooking,
   createTravelEventBooking,
+  getUserTravelEventBooking,
   subscribeToTravelEventById,
-  TravelEvent
+  TravelEvent,
+  TravelEventBooking,
+  updateTravelEventBooking
 } from '@/models/firestoreEventModel';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useTravelEventDetailsViewModel() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,8 +18,13 @@ export function useTravelEventDetailsViewModel() {
   const [seatsRequired, setSeatsRequired] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+
   const [pendingBooking, setPendingBooking] = useState<null | { seatsBooked: number }>(null);
+  const [booking, setBooking] = useState<TravelEventBooking | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
@@ -34,6 +43,22 @@ export function useTravelEventDetailsViewModel() {
 
     return () => unsubscribe();
   }, [id]);
+
+  const fetchUserBooking = useCallback(async () => {
+    if (!id || !user?.uid) return;
+
+    setLoading(true);
+    try {
+      const booking = await getUserTravelEventBooking(user.uid, id);
+      setBooking(booking);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, user?.uid]);
+
+  useEffect(() => {
+    fetchUserBooking();
+  }, [fetchUserBooking]);
 
   const validateField = () => {
     const numericValue = Number(seatsRequired);
@@ -65,7 +90,11 @@ export function useTravelEventDetailsViewModel() {
 
     const numericSeats = Number(seatsRequired);
 
-    if (event?.requirePayment) {
+    setPaymentAmount(
+      event!.price * numericSeats
+    );
+
+    if (event!.requirePayment) {
       setPendingBooking({ seatsBooked: numericSeats });
 
       showSnackbar({
@@ -96,6 +125,9 @@ export function useTravelEventDetailsViewModel() {
       });
 
       setSeatsRequired('');
+      setPendingBooking(null);
+
+      fetchUserBooking();
 
       showSnackbar({ message: 'Booking saved, pending payment.', type: 'success' });
     } catch (err: any) {
@@ -110,14 +142,24 @@ export function useTravelEventDetailsViewModel() {
     try {
       console.log('Card details:', cardDetails);
 
-      await createTravelEventBooking(event!.id!, {
-        seatsBooked: pendingBooking!.seatsBooked,
-        payed: true,
-        bookerName: user!.displayName!,
-        bookerUid: user!.uid,
-      });
-
+      if (pendingBooking) {
+        await createTravelEventBooking(event!.id!, {
+          seatsBooked: pendingBooking!.seatsBooked,
+          payed: true,
+          bookerName: user!.displayName!,
+          bookerUid: user!.uid,
+        });
+      } else {
+        await updateTravelEventBooking(
+          event!.id!,
+          booking!.id!,
+          true // payed
+        );
+      }
+      
       setSeatsRequired('');
+
+      fetchUserBooking();
 
       showSnackbar({ message: 'Payment successful and booking complete.', type: 'success' });
     } catch (err: any) {
@@ -149,6 +191,43 @@ export function useTravelEventDetailsViewModel() {
     });
   };
 
+  const handlePayNow = () => {
+    setPaymentAmount(
+      event!.price * booking!.seatsBooked
+    );
+
+    setShowPaymentModal(true);
+  };
+
+  const handleCancelBooking = async () => {
+    const confirm = window.confirm(
+      'Are you sure you want to cancel this booking?'
+    );
+
+    if (confirm) {
+      setIsCancelling(true);
+
+      try {
+        await cancelTravelEventBooking(
+          event!.id!,
+          booking!.id!
+        )
+
+        setBooking(null);
+
+        showSnackbar({
+          message: `Your booking for ${event!.title} was cancelled.`,
+          type: 'success',
+        });
+      } catch (err: any) {
+        console.error(err);
+        showSnackbar({ message: err.message || 'Booking cancellation failed.', type: 'error' });
+      } finally {
+        setIsCancelling(false);
+      }
+    }
+  };
+
   return {
     event,
     seatsRequired,
@@ -161,5 +240,10 @@ export function useTravelEventDetailsViewModel() {
     error,
     loading,
     handleViewEventBookings,
+    booking,
+    handlePayNow,
+    paymentAmount,
+    handleCancelBooking,
+    isCancelling,
   };
 }
