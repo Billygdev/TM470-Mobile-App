@@ -32,7 +32,7 @@ export function useMyBookingsViewModel() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, [user]);
 
   const handleEventPress = (event: TravelEvent) => {

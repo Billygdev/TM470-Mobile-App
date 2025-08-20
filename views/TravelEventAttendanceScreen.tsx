@@ -1,6 +1,5 @@
 import { TravelEventBooking } from '@/models/firestoreEventModel';
 import { useLocalSearchParams } from 'expo-router';
-import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Checkbox, Divider, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTravelEventAttendanceViewModel } from '../viewModels/useTravelEventAttendanceViewModel';
@@ -18,13 +17,16 @@ const TravelEventAttendanceScreen = () => {
   } = useTravelEventAttendanceViewModel(id as string);
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      testID="attendance-screen-root"
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Mark Attendance
       </Text>
 
-      {loading && <ActivityIndicator size="large" />}
-      {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
+      {loading && <ActivityIndicator size="large" testID="attendance-loading" />}
+      {error && <Text testID="attendance-error" style={[styles.error, { color: colors.error }]}>{error}</Text>}
 
       {!loading && (
         <>
@@ -38,55 +40,65 @@ const TravelEventAttendanceScreen = () => {
 
           {/* Booking rows */}
           {bookings.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.onBackground }]}>No bookings</Text>
+            <Text testID="attendance-empty" style={[styles.emptyText, { color: colors.onBackground }]}>
+              No bookings
+            </Text>
           ) : (
             bookings.map((booking: TravelEventBooking, index: any) => (
               <View key={booking.id || index} style={styles.tableRow}>
                 <View style={styles.cell}>
-                <Text style={{ color: colors.onBackground, textAlign: 'center' }}>
+                  <Text
+                    testID={`booking-name-${index}`}
+                    style={{ color: colors.onBackground, textAlign: 'center' }}
+                  >
                     {booking.bookerName}
-                </Text>
+                  </Text>
                 </View>
 
-                <View style={styles.cell}>
-                <Checkbox
+                <View
+                  testID={`attendance-checkbox-${index}`}
+                  style={styles.cell}
+                >
+                  <Checkbox
                     status={booking.attended ? 'checked' : 'unchecked'}
                     onPress={() => toggleAttendance(index)}
-                />
+                  />
                 </View>
 
                 <View style={styles.cell}>
-                    <TextInput
-                        mode="outlined"
-                        dense
-                        keyboardType="numeric"
-                        value={(
-                            booking.seatsAttended !== undefined
-                            ? booking.seatsAttended
-                            : booking.seatsBooked
-                        ).toString()}
-                        editable={booking.attended}
-                        onChangeText={(text) => {
-                            const parsed = parseInt(text) || 0;
-                            if (parsed <= booking.seatsBooked) updateSeatsAttended(index, parsed);
-                        }}
-                        style={[styles.seatsInput]}
-                        theme={{ roundness: 4 }}
-                        right={
-                            <TextInput.Affix
-                            text={`/ ${booking.seatsBooked}`}
-                            textStyle={{ color: '#999', fontSize: 16 }}
-                            />
-                        }
-                    />
+                  <TextInput
+                    accessibilityLabel={`booking-seats-${index}`}
+                    mode="outlined"
+                    dense
+                    keyboardType="numeric"
+                    value={(
+                      booking.seatsAttended !== undefined
+                        ? booking.seatsAttended
+                        : booking.seatsBooked
+                    ).toString()}
+                    editable={booking.attended}
+                    onChangeText={(text) => {
+                      const parsed = parseInt(text) || 0;
+                      if (parsed <= booking.seatsBooked) updateSeatsAttended(index, parsed);
+                    }}
+                    style={[styles.seatsInput]}
+                    theme={{ roundness: 4 }}
+                    right={
+                      <TextInput.Affix
+                        text={`/ ${booking.seatsBooked}`}
+                        textStyle={{ color: '#999', fontSize: 16 }}
+                      />
+                    }
+                  />
                 </View>
-            </View>
+              </View>
             ))
           )}
 
           <Button
             mode="contained"
             style={styles.button}
+            accessibilityLabel="Save Attendance"
             onPress={handleSaveAttendance}
           >
             Save Attendance

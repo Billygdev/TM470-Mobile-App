@@ -1,5 +1,4 @@
 import { useLocalSearchParams } from 'expo-router';
-import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Divider, Text, useTheme } from 'react-native-paper';
 import { useTravelEventBookingsViewModel } from '../viewModels/useTravelEventBookingsViewModel';
@@ -16,7 +15,10 @@ const TravelEventBookingsScreen = () => {
   } = useTravelEventBookingsViewModel(id as string);
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      testID="bookings-screen-root"
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Event Bookings
       </Text>
@@ -62,6 +64,7 @@ const TravelEventBookingsScreen = () => {
             mode="contained"
             style={styles.button}
             onPress={handleMarkEventAttendance}
+            accessibilityLabel="Mark Attendance"
           >
             Mark Attendance
           </Button>

@@ -1,5 +1,5 @@
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
-import { getRecentNews } from '../firestoreNewsModel';
+import { getRecentNews } from '../../firestoreNewsModel';
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({

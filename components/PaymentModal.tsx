@@ -56,13 +56,18 @@ export function PaymentModal({ visible, onClose, onSubmit, amount }: PaymentModa
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      testID="payment-modal-root"
+      visible={visible} animationType="slide"
+      transparent
+    >
       <View style={styles.overlay}>
         <View style={[styles.modal, { backgroundColor: colors.background }]}>
           <Text variant="titleLarge" style={styles.title}>Payment - £{amount}</Text>
 
           <TextInput
             label="Name on Card"
+            accessibilityLabel="Name on Card"
             value={nameOnCard}
             onChangeText={setNameOnCard}
             mode="outlined"
@@ -71,6 +76,7 @@ export function PaymentModal({ visible, onClose, onSubmit, amount }: PaymentModa
 
           <TextInput
             label="Card Number"
+            accessibilityLabel="Card Number"
             value={cardNumber}
             onChangeText={setCardNumber}
             keyboardType="numeric"
@@ -81,6 +87,7 @@ export function PaymentModal({ visible, onClose, onSubmit, amount }: PaymentModa
 
           <TextInput
             label="Expiry (MM/YY)"
+            accessibilityLabel="Expiry (MM/YY)"
             value={expiry}
             onChangeText={setExpiry}
             mode="outlined"
@@ -91,6 +98,7 @@ export function PaymentModal({ visible, onClose, onSubmit, amount }: PaymentModa
 
           <TextInput
             label="Security Code"
+            accessibilityLabel="Security Code"
             value={securityCode}
             onChangeText={setSecurityCode}
             keyboardType="numeric"

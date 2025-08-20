@@ -1,6 +1,5 @@
 import { TravelEventCard } from '@/components/TravelEventCard';
 import { useTravelEventsSearchViewModel } from '@/viewModels/useTravelEventsSearchViewModel';
-import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Searchbar, Text, useTheme } from 'react-native-paper';
 
@@ -15,7 +14,10 @@ export default function TravelEventsSearchScreen() {
   } = useTravelEventsSearchViewModel();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="travel-events-search-root"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Search Events
       </Text>
@@ -25,21 +27,27 @@ export default function TravelEventsSearchScreen() {
         value={searchQuery}
         onChangeText={setSearchQuery}
         style={styles.search}
+        accessibilityLabel="Search Events"
       />
 
       {loading ? (
-        <ActivityIndicator style={styles.loader} />
+        <ActivityIndicator testID="activity-indicator" style={styles.loader} />
       ) : events.length === 0 ? (
-        <Text style={[styles.emptyMessage, { color: colors.onBackground }]}>
+        <Text
+          testID="empty-events-message"
+          style={[styles.emptyMessage, { color: colors.onBackground }]}
+        >
           No travel events found.
         </Text>
       ) : (
         <FlatList
+          testID="events-list"
           data={events}
           keyExtractor={item => item.id!}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <TravelEventCard
+              testID={`event-card-${item.id}`}
               title={item.title}
               destination={item.destination}
               pickupLocation={item.pickupLocation}

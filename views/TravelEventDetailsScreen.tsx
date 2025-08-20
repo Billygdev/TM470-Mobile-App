@@ -1,7 +1,6 @@
 import { PaymentModal } from '@/components/PaymentModal';
 import { useTravelEventDetailsViewModel } from '@/viewModels/useTravelEventDetailsViewModel';
 import { useRouter } from 'expo-router';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   Button,
@@ -43,7 +42,10 @@ export default function TravelEventDetailsScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="event-details-screen-root"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Travel Event
       </Text>
@@ -122,6 +124,7 @@ export default function TravelEventDetailsScreen() {
 
           <TextInput
             label="Number of Seats Required"
+            accessibilityLabel="Number of Seats Required"
             value={seatsRequired}
             onChangeText={setSeatsRequired}
             mode="outlined"
@@ -135,6 +138,7 @@ export default function TravelEventDetailsScreen() {
             style={styles.button}
             loading={loading}
             disabled={loading}
+            accessibilityLabel="Join Event"
           >
             Join Event
           </Button>
@@ -164,6 +168,7 @@ export default function TravelEventDetailsScreen() {
                 compact
                 onPress={handlePayNow}
                 style={styles.payButton}
+                accessibilityLabel="Pay Now"
               >
                 Pay Now
               </Button>
@@ -176,6 +181,7 @@ export default function TravelEventDetailsScreen() {
               style={styles.cancelButton}
               loading={isCancelling}
               disabled={isCancelling}
+              accessibilityLabel="Cancel Booking"
             >
               Cancel Booking
             </Button>
@@ -197,6 +203,7 @@ export default function TravelEventDetailsScreen() {
         style={styles.button}
         loading={loading}
         disabled={loading}
+        accessibilityLabel="View Bookings"
       >
         View Bookings
       </Button>

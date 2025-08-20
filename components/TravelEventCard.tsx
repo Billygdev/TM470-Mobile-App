@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Card, Divider, Text, TouchableRipple, useTheme } from 'react-native-paper';
 
@@ -10,6 +9,7 @@ type TravelEventCardProps = {
   pickupTime: string;
   price: number;
   onPress?: () => void;
+  testID?: string;
 
   // Optional booking props
   seatsBooked?: number;
@@ -28,6 +28,7 @@ export function TravelEventCard({
   pickupTime,
   price,
   onPress,
+  testID,
   seatsBooked,
   payed,
   createdAt,
@@ -46,7 +47,10 @@ export function TravelEventCard({
     createdAt;
 
   return (
-    <Card style={styles.card}>
+    <Card
+      style={styles.card}
+      testID={testID}
+    >
       <TouchableRipple
         onPress={onPress}
         rippleColor={dark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)'}
