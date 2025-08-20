@@ -1,7 +1,6 @@
 import LogoutButton from '@/components/LogoutButton';
 import ThemeToggleButton from '@/components/ThemeToggleButton';
 import { useHomeViewModel } from '@/viewModels/useHomeViewModel';
-import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Divider, Text, useTheme } from 'react-native-paper';
 
@@ -15,7 +14,10 @@ export default function HomeScreen() {
   } = useHomeViewModel();
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView
+      testID="home-screen-root"
+      contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.mainTitle, { color: colors.onBackground }]}>
         Sports Travel Organizer
       </Text>

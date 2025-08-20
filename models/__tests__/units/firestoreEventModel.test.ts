@@ -24,7 +24,7 @@ import {
   updateTravelEvent,
   updateTravelEventBooking,
   updateTravelEventBookingAttendance,
-} from '../firestoreEventModel';
+} from '../../firestoreEventModel';
 
 // Mock Firebase Firestore
 jest.mock('firebase/firestore', () => ({
@@ -217,6 +217,7 @@ test('createTravelEventBooking successfully adds a booking', async () => {
   expect(addDoc).toHaveBeenCalledWith('mocked-collection-ref', {
     ...booking,
     createdAt: 'mocked-timestamp',
+    cancelledAt: null,
   });
 
   // No static update to event doc anymore

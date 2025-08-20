@@ -1,5 +1,4 @@
 import { useLoginViewModel } from '@/viewModels/useLoginViewModel';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, HelperText, Text, TextInput, useTheme } from 'react-native-paper';
 
@@ -17,13 +16,17 @@ export default function LoginScreen() {
   } = useLoginViewModel();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="login-screen-root"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Login
       </Text>
 
       <TextInput
         label="Email"
+        accessibilityLabel="Email"
         mode="outlined"
         value={email}
         onChangeText={setEmail}
@@ -34,6 +37,7 @@ export default function LoginScreen() {
 
       <TextInput
         label="Password"
+        accessibilityLabel="Password"
         mode="outlined"
         value={password}
         onChangeText={setPassword}
@@ -49,6 +53,7 @@ export default function LoginScreen() {
         loading={loading}
         disabled={loading}
         style={styles.button}
+        accessibilityLabel="Log In"
       >
         Log In
       </Button>
@@ -57,6 +62,7 @@ export default function LoginScreen() {
         mode="text"
         onPress={navigateToSignUp}
         style={styles.button}
+        accessibilityLabel="Sign Up"
       >
         Sign Up
       </Button>

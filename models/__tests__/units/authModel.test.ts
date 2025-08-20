@@ -3,7 +3,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { loginUser, registerUser } from '../authModel';
+import { loginUser, registerUser } from '../../authModel';
 
 // Mock Firebase Auth
 jest.mock('firebase/auth', () => ({

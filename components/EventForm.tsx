@@ -63,13 +63,17 @@ export const EventForm: React.FC<EventFormProps> = ({
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="event-form-screen-root"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         {submitLabel} Event
       </Text>
 
       <TextInput
         label="Event Title"
+        accessibilityLabel="Event Title"
         mode="outlined"
         value={title}
         onChangeText={setTitle}
@@ -78,6 +82,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Destination"
+        accessibilityLabel="Destination"
         mode="outlined"
         value={destination}
         onChangeText={setDestination}
@@ -86,6 +91,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Pickup Location"
+        accessibilityLabel="Pickup Location"
         mode="outlined"
         value={pickupLocation}
         onChangeText={setPickupLocation}
@@ -94,6 +100,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Pickup Date"
+        accessibilityLabel="Pickup Date"
         mode="outlined"
         value={pickupDate}
         onChangeText={setPickupDate}
@@ -103,6 +110,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Pickup Time"
+        accessibilityLabel="Pickup Time"
         mode="outlined"
         value={pickupTime}
         onChangeText={setPickupTime}
@@ -112,6 +120,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Price"
+        accessibilityLabel="Price"
         mode="outlined"
         value={price}
         onChangeText={setPrice}
@@ -122,6 +131,7 @@ export const EventForm: React.FC<EventFormProps> = ({
 
       <TextInput
         label="Seats Available"
+        accessibilityLabel="Seats Available"
         mode="outlined"
         value={seatsAvailable}
         onChangeText={setSeatsAvailable}
@@ -129,12 +139,14 @@ export const EventForm: React.FC<EventFormProps> = ({
         style={styles.input}
       />
 
-      <View style={styles.checkboxContainer}>
+      <View style={styles.checkboxContainer} testID="require-payment-checkbox">
         <Checkbox
-        status={requirePayment ? 'checked' : 'unchecked'}
-        onPress={() => setRequirePayment(!requirePayment)}
+          status={requirePayment ? 'checked' : 'unchecked'}
+          onPress={() => setRequirePayment(!requirePayment)}
         />
-        <Text style={{ color: colors.onBackground, marginLeft: 8 }}>Require payment</Text>
+        <Text style={{ color: colors.onBackground, marginLeft: 8 }}>
+          Require payment
+        </Text>
       </View>
 
       {!!error && (
@@ -149,6 +161,7 @@ export const EventForm: React.FC<EventFormProps> = ({
         loading={loading}
         disabled={loading}
         style={styles.button}
+        testID="create-button"
       >
         {submitLabel}
       </Button>
@@ -160,12 +173,18 @@ export const EventForm: React.FC<EventFormProps> = ({
           loading={loading}
           disabled={loading}
           style={styles.button}
+          testID="cancel-button"
         >
           Cancel Event
         </Button>
       )}
 
-      <Button mode="text" onPress={onBack} style={styles.button}>
+      <Button
+        mode="text"
+        onPress={onBack}
+        style={styles.button}
+        testID="back-button"
+      >
         Back
       </Button>
     </View>

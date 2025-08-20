@@ -1,5 +1,4 @@
 import { useSignUpViewModel } from '@/viewModels/useSignUpViewModel';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, HelperText, Text, TextInput, useTheme } from 'react-native-paper';
 
@@ -21,13 +20,17 @@ export default function SignUpScreen() {
   } = useSignUpViewModel();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      testID="signup-screen-root"
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         Sign Up
       </Text>
 
       <TextInput
         label="Username"
+        accessibilityLabel="Username"
         mode="outlined"
         value={username}
         onChangeText={setUsername}
@@ -37,6 +40,7 @@ export default function SignUpScreen() {
 
       <TextInput
         label="Email"
+        accessibilityLabel="Email"
         mode="outlined"
         value={email}
         onChangeText={setEmail}
@@ -47,6 +51,7 @@ export default function SignUpScreen() {
 
       <TextInput
         label="Password"
+        accessibilityLabel="Password"
         mode="outlined"
         value={password}
         onChangeText={setPassword}
@@ -56,6 +61,7 @@ export default function SignUpScreen() {
 
       <TextInput
         label="Confirm Password"
+        accessibilityLabel="Confirm Password"
         mode="outlined"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
@@ -75,6 +81,7 @@ export default function SignUpScreen() {
         loading={loading}
         disabled={loading}
         style={styles.button}
+        accessibilityLabel="Create Account"
       >
         Create Account
       </Button>
@@ -83,6 +90,7 @@ export default function SignUpScreen() {
         mode="text"
         onPress={navigateToLogin}
         style={styles.button}
+        accessibilityLabel="Cancel"
       >
         Cancel
       </Button>

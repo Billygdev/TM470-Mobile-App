@@ -1,7 +1,6 @@
 import { PaymentModal } from '@/components/PaymentModal';
 import { TravelEventCard } from '@/components/TravelEventCard';
 import { useMyBookingsViewModel } from '@/viewModels/useMyBookingsViewModel';
-import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text, useTheme } from 'react-native-paper';
 
@@ -21,7 +20,10 @@ export default function MyBookingsScreen() {
   } = useMyBookingsViewModel();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.background }]}
+      testID="my-bookings-screen-root"
+    >
       <Text variant="headlineMedium" style={[styles.title, { color: colors.onBackground }]}>
         My Bookings
       </Text>
