@@ -95,6 +95,7 @@ export function TravelEventCard({
                     compact
                     onPress={onPayPress}
                     style={styles.payButton}
+                    accessibilityLabel="Pay Now"
                   >
                     Pay Now
                   </Button>
@@ -109,6 +110,7 @@ export function TravelEventCard({
                   style={styles.cancelButton}
                   loading={isCancelling}
                   disabled={isCancelling}
+                  accessibilityLabel="Cancel Booking"
                 >
                   Cancel Booking
                 </Button>

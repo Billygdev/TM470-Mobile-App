@@ -113,11 +113,22 @@ export function PaymentModal({ visible, onClose, onSubmit, amount }: PaymentModa
             </HelperText>
           )}
 
-          <Button mode="contained" onPress={handleSubmit} style={styles.button}>
+          <Button
+            mode="contained"
+            onPress={handleSubmit}
+            style={styles.button}
+            accessibilityLabel="Pay"
+          >
             Pay
           </Button>
           
-          <Button mode="text" onPress={onClose}>Cancel</Button>
+          <Button
+            mode="text"
+            onPress={onClose}
+            accessibilityLabel="Cancel"
+          >
+            Cancel
+          </Button>
         </View>
       </View>
     </Modal>

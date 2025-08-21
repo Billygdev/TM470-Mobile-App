@@ -45,7 +45,16 @@ export default function LoginScreen() {
         style={styles.input}
       />
 
-      {error && <HelperText type="error" visible>{error}</HelperText>}
+      {
+        error &&
+        <HelperText
+          testID="login-error"
+          type="error"
+          visible
+        >
+          {error}
+        </HelperText>
+      }
 
       <Button
         mode="contained"
